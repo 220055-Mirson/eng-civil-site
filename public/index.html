@@ -118,34 +118,9 @@
   <!-- SCRIPTS -->
 
   
-  <script src="/js/index.js"></script>
+  <script src="js/index.js"></script>
 
- <script>
-document.addEventListener("DOMContentLoaded", () => {
-  const usuarioLogado = localStorage.getItem("usuarioLogado");
 
-  if (!usuarioLogado) {
-    // Se não tiver usuário logado, manda direto para login
-    window.location.href = "/login.html";
-    return; // garante que o resto do script não execute
-  }
-
-  const nome = usuarioLogado;
-  const role = localStorage.getItem("role");
-
-  const bemVindo = document.getElementById("bemVindo");
-  if (bemVindo) bemVindo.innerText = `Bem-vindo, ${nome}`;
-
-  const menuAdmin = document.getElementById("menuAdmin");
-  if (role !== "admin" && menuAdmin) menuAdmin.style.display = "none";
-
-  window.logout = function () {
-    localStorage.removeItem("usuarioLogado");
-    localStorage.removeItem("role");
-    window.location.href = "/login.html";
-  };
-});
-</script>
 
 
 
