@@ -21,6 +21,6 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem("role", role);
 
     // Redirecionar
-    window.location.href = "index.html";
+    window.location.href = "/index.html";
   });
 });
