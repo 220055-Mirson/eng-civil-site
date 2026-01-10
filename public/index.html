@@ -4,67 +4,151 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Site Ugembe</title>
+
+  <!-- CSS -->
   <link rel="stylesheet" href="/css/style.css">
 </head>
 
 <body>
-  <script>
-    // Verifica login
-    const usuarioLogado = localStorage.getItem("usuarioLogado");
-    if (!usuarioLogado) {
-      window.location.href = "/login.html";
-    }
-  </script>
+  <script src="js/checkAuth.js"></script>
+<script src="js/index.js"></script>
+
 
   <!-- NAVBAR -->
   <header class="navbar">
     <div class="container nav-container">
+
+      <!-- LOGO -->
       <div class="logo">
         <img src="/img/logotipo.png" alt="Logo Ugembe">
       </div>
-      <div class="welcome-user destaque" id="bemVindo"></div>
+
+      <!-- BEM-VINDO -->
+      <div class="welcome-user destaque" id="bemVindo">
+        Bem-vindo
+      </div>
+
+      <!-- MENU -->
       <ul class="nav-links">
         <li id="menuAdmin"><a href="/admin.html">Admin</a></li>
         <li><a href="/construcoes.html">Construções</a></li>
         <li><a href="/sobre.html">Sobre</a></li>
-        <li><a href="#" onclick="logout()">Sair</a></li>
+        <li><a href="#" class="btn-sair" onclick="logout()">Sair</a></li>
       </ul>
+
     </div>
   </header>
 
-  <!-- Conteúdo principal -->
+  <!-- CONTEÚDO PRINCIPAL -->
   <main class="container conteudo">
     <h1 class="titulo">Projetos Recentes</h1>
+
     <div class="grid-cards">
-      <!-- Seus cards aqui -->
+
+      <!-- CARD 1 -->
+      <div class="card" onclick="abrirDetalhes()">
+        <img src="/uploads/teste1.png" alt="Projeto 1">
+        <h3>Título do Projeto</h3>
+        <p>Descrição breve do projeto apresentado.</p>
+        <textarea class="comentario" placeholder="Deixe um comentário..."></textarea>
+        <button class="btn-comentar">Comentar</button>
+      </div>
+
+      <!-- CARD 2 -->
+      <div class="card" onclick="abrirDetalhes()">
+        <img src="/uploads/teste2.png" alt="Projeto 2">
+        <h3>Título do Projeto</h3>
+        <p>Descrição breve do projeto apresentado.</p>
+        <textarea class="comentario" placeholder="Deixe um comentário..."></textarea>
+        <button class="btn-comentar">Comentar</button>
+      </div>
+
+      <!-- CARD 3 -->
+      <div class="card" onclick="abrirDetalhes()">
+        <img src="/uploads/teste3.png" alt="Projeto 3">
+        <h3>Título do Projeto</h3>
+        <p>Descrição breve do projeto apresentado.</p>
+        <textarea class="comentario" placeholder="Deixe um comentário..."></textarea>
+        <button class="btn-comentar">Comentar</button>
+      </div>
+
+      <!-- CARD 4 -->
+      <div class="card" onclick="abrirDetalhes()">
+        <img src="/uploads/teste4.png" alt="Projeto 4">
+        <h3>Título do Projeto</h3>
+        <p>Descrição breve do projeto apresentado.</p>
+        <textarea class="comentario" placeholder="Deixe um comentário..."></textarea>
+        <button class="btn-comentar">Comentar</button>
+      </div>
+
     </div>
   </main>
 
-  <footer>
+  <!-- FOOTER -->
+  <footer> 
     <div class="footer">
       <h2>Construa seus sonhos com qualidade!</h2>
+
+      <div class="redes-sociais">
+        <a href="mailto:ugembenedio@gmail.com">
+          <img src="/img/email.png" alt="E-mail">
+        </a>
+
+        <a href="https://facebook.com/Nedio Nani Ugembe" target="_blank">
+          <img src="/img/FB.png" alt="Facebook">
+        </a>
+
+        <a href="https://instagram.com/nedio_ugembe" target="_blank">
+          <img src="/img/Instagram.png" alt="Instagram">
+        </a>
+
+        <a href="https://wa.me/+258847169230" target="_blank">
+          <img src="/img/whatsapp.png" alt="Whatsapp">
+        </a>
+      </div>
+
+      <p>Mais info: 868814400 / 833752673</p>
+      <p>© 2026 Eng-Ugembe - Todos os direitos reservados</p>
+      <p>Dev-Mirson</p>
     </div>
   </footer>
 
-  <!-- Scripts -->
-  <script>
-    const nome = localStorage.getItem("usuarioLogado");
-    const role = localStorage.getItem("role");
 
-    if (nome) {
-      document.getElementById("bemVindo").innerText = `Bem-vindo, ${nome}`;
-    }
+  
+  <!-- SCRIPTS -->
 
-    const menuAdmin = document.getElementById("menuAdmin");
-    if (role !== "admin" && menuAdmin) {
-      menuAdmin.style.display = "none";
-    }
+  
+  <script src="/js/index.js"></script>
 
-    function logout() {
-      localStorage.removeItem("usuarioLogado");
-      localStorage.removeItem("role");
-      window.location.href = "/login.html";
-    }
-  </script>
+ <script>
+document.addEventListener("DOMContentLoaded", () => {
+  const usuarioLogado = localStorage.getItem("usuarioLogado");
+
+  if (!usuarioLogado) {
+    // Se não tiver usuário logado, manda direto para login
+    window.location.href = "/login.html";
+    return; // garante que o resto do script não execute
+  }
+
+  const nome = usuarioLogado;
+  const role = localStorage.getItem("role");
+
+  const bemVindo = document.getElementById("bemVindo");
+  if (bemVindo) bemVindo.innerText = `Bem-vindo, ${nome}`;
+
+  const menuAdmin = document.getElementById("menuAdmin");
+  if (role !== "admin" && menuAdmin) menuAdmin.style.display = "none";
+
+  window.logout = function () {
+    localStorage.removeItem("usuarioLogado");
+    localStorage.removeItem("role");
+    window.location.href = "/login.html";
+  };
+});
+</script>
+
+
+
+
 </body>
 </html>
