@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem("usuarioLogado", nome);
     localStorage.setItem("role", role);
 
-    // Redirecionar
+    // Redirecionar para index
     window.location.href = "/index.html";
   });
 });
