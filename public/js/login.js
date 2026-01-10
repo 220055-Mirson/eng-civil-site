@@ -22,5 +22,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Redirecionar para index
     window.location.href = "/index.html";
+
   });
 });

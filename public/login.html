@@ -38,29 +38,7 @@
   </div>
 
   <!-- SCRIPT -->
-  <script>
-    function login() {
-      const nome = document.getElementById("username").value.trim();
-
-      if (!nome) {
-        alert("Digite seu nome");
-        return;
-      }
-
-      // Definir papel
-      let role = "user";
-      if (nome.toLowerCase() === "ugembe") {
-        role = "admin";
-      }
-
-      // Guardar no navegador
-      localStorage.setItem("usuarioLogado", nome);
-      localStorage.setItem("role", role);
-
-      // Redirecionar
-      window.location.href = "/index.html";
-    }
-  </script>
+  
 
 </body>
 </html>
