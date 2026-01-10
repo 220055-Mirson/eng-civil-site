@@ -1,0 +1,15 @@
+
+2️⃣ Criar upload de múltiplas imagens
+
+4️⃣ Criar detalhes do projeto dinâmico
+5️⃣ Paginação + comentários em tempo real
+📸 Criar upload de imagens no banco
+
+
+🔄 Ligar index → detalhes dinamicamente
+
+🖼️ Montar galeria real por projeto
+
+🗑️ Criar apagar projeto (admin)
+
+🔐 Proteger admin por role
