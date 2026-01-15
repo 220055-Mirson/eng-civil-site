@@ -36,8 +36,15 @@ app.use(cors({
 /* =======================
    BANCO DE DADOS
 ======================= */
-const DB_FILE = process.env.DB_FILE || "./data/database.db";
+const path = require("path");
+const fs = require("fs");
+
+const DB_FILE = process.env.DB_FILE 
+  ? process.env.DB_FILE
+  : path.join(__dirname, "data", "database.db");
+
 const dataDir = path.dirname(DB_FILE);
+
 if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
 }
@@ -47,10 +54,12 @@ console.log("📁 SQLite DB em uso:", DB_FILE);
 const db = new sqlite3.Database(DB_FILE, err => {
   if (err) {
     console.error("❌ Erro ao conectar SQLite:", err.message);
-    process.exit(1); // falha clara em produção
+    // NÃO mata o servidor em produção
+  } else {
+    console.log("✅ SQLite conectado");
   }
-  console.log("✅ SQLite conectado");
 });
+
 /* =======================
    MIDDLEWARE
 ======================= */
