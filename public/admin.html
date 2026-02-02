@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel Administrativo | Ugembe</title>
+
+  <!-- CSS CORRETO -->
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <div class="logo">
+        <img src="/img/logotipo.png" alt="Logo Ugembe">
+      </div>
+
+      <ul class="nav-links">
+        <li><a href="/index.html">Início</a></li>
+        <li><a href="/projectos.html">Projetos</a></li>
+        <li><a href="/sobre.html">Sobre</a></li>
+        <li><a href="#" class="btn-sair" onclick="logout()">Sair</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <main class="container conteudo">
+
+    <h1 class="titulo">Painel Administrativo</h1>
+
+    <!-- FORM DE CADASTRO -->
+    <section class="card admin-card">
+      <h2>Adicionar Novo Projeto</h2>
+
+      <br><form id="form-projeto" enctype="multipart/form-data">
+
+        <strong><p><label>Título do Projeto</label></p></strong>
+        <p><input type="text" name="titulo" required class="input-text"></p>
+
+        <strong><br><p><label>Descrição</label></p></strong>
+        <textarea name="descricao" required class="comentario" style="height:100px"></textarea>
+
+        <label>Carregar Imagens (múltiplas)</label>
+        <input type="file" name="imagens" accept="image/*" multiple required>
+
+        <button class="btn-comentar" style="margin-top:15px">
+          Salvar Projeto
+        </button>
+
+      </form>
+    </section>
+
+    <!-- LISTA DE PROJETOS -->
+    <h2 style="margin-top:40px;">Projetos Cadastrados</h2>
+
+    <div id="lista-projetos" class="grid-cards">
+
+      <!-- EXEMPLO -->
+      <div class="card">
+        <img src="/uploads/teste1.png" alt="">
+        <h3>Casa Térrea — Matola</h3>
+        <p>Projeto residencial concluído no bairro X.</p>
+
+        <div class="admin-actions">
+      
+          <button class="btn-apagar">Apagar</button>
+        </div>
+      </div>
+
+      <!-- Projetos reais virão do JS -->
+    </div>
+
+  </main>
+
+  <!-- JS CORRETO -->
+  <script src="/js/admin.js"></script>
+
+  <script>
+    function logout() {
+      localStorage.clear();
+      window.location.href = "/login.html";
+    }
+  </script>
+
+</body>
+</html>

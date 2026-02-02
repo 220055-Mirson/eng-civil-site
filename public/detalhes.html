@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detalhes do Projeto | Ugembe</title>
+
+  <!-- CSS CORRETO -->
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <div class="logo">
+        <img src="/img/logotipo.png" alt="Logo Ugembe">
+      </div>
+
+      <ul class="nav-links">
+        <li><a href="/index.html">Início</a></li>
+        <li><a href="/projectos.html">Projetos</a></li>
+        <li><a href="/sobre.html">Sobre</a></li>
+        <li><a href="#" class="btn-sair">Sair</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <!-- CONTEÚDO -->
+  <main class="container conteudo">
+
+    <h1 id="titulo-projeto" class="titulo">Título do Projeto</h1>
+
+    <p id="descricao-projeto" class="descricao-projeto">
+      Aqui vai aparecer a descrição completa do projeto carregada pelo JS.
+    </p>
+
+    <!-- GALERIA -->
+    <h2>Galeria de Imagens</h2>
+
+    <div id="galeria" class="galeria-grid">
+      <img src="/uploads/teste1.png" alt="">
+      <img src="/uploads/teste2.png" alt="">
+      <img src="/uploads/teste3.png" alt="">
+    </div>
+
+
+    <!-- Modal para imagem -->
+<div id="modal-img" class="modal-img">
+  <span class="close">&times;</span>
+  <img class="modal-content" id="imgFull">
+</div>
+
+
+    <!-- COMENTÁRIOS -->
+    <section class="comentarios-sec">
+      <h2>Comentários</h2>
+
+      <div id="lista-comentarios" class="lista-comentarios">
+        <div class="comentario-card">
+          <h4>Usuário Anônimo</h4>
+          <p>Excelente projeto! Muito bem finalizado.</p>
+        </div>
+      </div>
+
+      <h3>Deixar um Comentário</h3>
+
+      <form id="form-comentario">
+        <textarea name="texto" class="comentario" placeholder="Escreva seu comentário..." required></textarea>
+        <button class="btn-comentar" style="margin-top: 10px;">Enviar Comentário</button>
+      </form>
+    </section>
+
+
+    
+
+  </main>
+
+  <!-- JS CORRETO -->
+  <script src="/js/detalhes.js"></script>
+</body>
+</html>

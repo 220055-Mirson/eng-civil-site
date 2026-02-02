@@ -1,0 +1,15 @@
+# Dependências
+node_modules/
+
+# Uploads
+public/uploads/
+uploads/
+
+# Banco de dados
+*.db
+
+# Variáveis de ambiente
+.env
+
+# Logs
+npm-debug.log*
