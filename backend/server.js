@@ -2,16 +2,42 @@ const express = require("express");
 const path = require("path");
 const cors = require("cors");
 const multer = require("multer");
-
+const rateLimit = require("express-rate-limit");
 const db = require("./db"); // ✅ ÚNICA conexão com SQLite
 
 const app = express();
+const helmet = require("helmet");
+
+app.use(helmet());
+
 
 // ---------------- MIDDLEWARE ---------------- //
-app.use(cors());
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 min
+  max: 100, // 100 requests por IP
+});
+
+app.use(limiter);
+
+app.use(cors({
+  origin: process.env.FRONTEND_URL,
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "../public")));
+
+app.use((err, req, res, next) => {
+  console.error(err);
+
+  res.status(500).json({
+    error: process.env.NODE_ENV === "production"
+      ? "Erro interno do servidor"
+      : err.message
+  });
+});
+
 
 // ---------------- MULTER ---------------- //
 const storage = multer.diskStorage({
@@ -26,6 +52,8 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // ---------------- ROTAS API ---------------- //
+
+
 
 // Listar todos os projetos com imagens
 app.get("/api/projetos", (req, res) => {
@@ -228,6 +256,11 @@ app.get("/detalhes.html", (req, res) =>
 
 // ---------------- ROTAS DELETE ---------------- //
 
+
+
+
+
+
 app.delete("/api/projetos/:id", (req, res) => {
   const { id } = req.params;
 
@@ -308,6 +341,8 @@ app.delete("/api/construcoes/:id", (req, res) => {
     );
   });
 });
+
+
 
 
 
