@@ -3,5 +3,5 @@ const usuarioLogado = localStorage.getItem("usuarioLogado");
 
 if (!usuarioLogado) {
   // Redireciona imediatamente para login se não estiver logado
-  window.location.href = "/login.html";
+  window.location.href = "login.html";
 }
