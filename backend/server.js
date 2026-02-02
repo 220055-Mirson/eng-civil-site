@@ -14,7 +14,7 @@ app.use(helmet());
 // ---------------- MIDDLEWARE ---------------- //
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 min
-  max: 100, // 100 requests por IP
+  max: 500, // 100 requests por IP
 });
 
 app.use(limiter);
