@@ -15,7 +15,7 @@
   <div class="card p-4 shadow-lg" style="width: 100%; max-width: 380px; border-radius: 20px;">
     <h3 class="text-center mb-3">Bem-vindo</h3>
 
-    <form onsubmit="login(); return false;">
+    <form id="loginForm">
       <div class="mb-3">
         <label for="username" class="form-label">Nome de Usuário</label>
         <input
@@ -38,29 +38,7 @@
   </div>
 
   <!-- SCRIPT -->
-  <script>
-    function login() {
-      const nome = document.getElementById("username").value.trim();
-
-      if (!nome) {
-        alert("Digite seu nome");
-        return;
-      }
-
-      // Definir papel
-      let role = "user";
-      if (nome.toLowerCase() === "ugembe") {
-        role = "admin";
-      }
-
-      // Guardar no navegador
-      localStorage.setItem("usuarioLogado", nome);
-      localStorage.setItem("role", role);
-
-      // Redirecionar
-      window.location.href = "index.html";
-    }
-  </script>
+  <script src="js/login.js"></script>
 
 </body>
 </html>

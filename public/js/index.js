@@ -3,9 +3,32 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 👉 nome do usuário vindo do login
   const usuarioLogado = localStorage.getItem("usuarioLogado");
+   const role = localStorage.getItem("role");
   if (!usuarioLogado) {
     window.location.href = "/login.html";
+    return;
   }
+
+
+
+  // Atualiza o "Bem-vindo, usuário"
+  const bemVindo = document.getElementById("bemVindo");
+  if (bemVindo) {
+    bemVindo.innerText = `Bem-vindo, ${usuarioLogado}`;
+  }
+
+  // Exibe ou esconde menu admin
+  const menuAdmin = document.getElementById("menuAdmin");
+  if (role !== "admin" && menuAdmin) {
+    menuAdmin.style.display = "none";
+  }
+
+  // Função logout
+  window.logout = () => {
+    localStorage.removeItem("usuarioLogado");
+    localStorage.removeItem("role");
+    window.location.href = "/login.html";
+  };
 
   async function carregarProjetos() {
     gridCards.innerHTML = "";
