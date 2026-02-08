@@ -18,6 +18,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const res = await fetch("/api/construcoes");
       const construcoes = await res.json();
 
+      if (!Array.isArray(construcoes)) {
+  console.error("Resposta inválida:", construcoes);
+  return;
+}
+
       construcoes.forEach(cons => {
         const card = document.createElement("div");
         card.classList.add("card");
