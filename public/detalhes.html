@@ -3,81 +3,90 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Detalhes do Projeto | Ugembe</title>
-
-  <!-- CSS CORRETO -->
-  <link rel="stylesheet" href="/css/style.css">
+  <title>OBRAVIA — Detalhes do Projeto</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.detalhes.css">
 </head>
-
 <body>
 
   <!-- NAVBAR -->
   <header class="navbar">
-    <div class="container nav-container">
+    <div class="nav-container">
       <div class="logo">
-        <img src="/img/logotipo.png" alt="Logo Ugembe">
+        <img src="/public/img/OBRAVIA.jpeg" alt="Logo OBRAVIA">
       </div>
-
+      <div class="welcome-user" id="bemVindo">Bem-vindo</div>
       <ul class="nav-links">
-        <li><a href="/index.html">Início</a></li>
-        <li><a href="/projectos.html">Projetos</a></li>
-        <li><a href="/sobre.html">Sobre</a></li>
-        <li><a href="#" class="btn-sair">Sair</a></li>
+        <li id="menuAdmin"><a href="admin.html">Admin</a></li>
+        <li><a href="construcoes.html">Construções</a></li>
+        <li><a href="sobre.html">Sobre</a></li>
+        <li><a href="#" class="btn-sair" onclick="logout()">Sair</a></li>
       </ul>
     </div>
   </header>
 
-  <!-- CONTEÚDO -->
-  <main class="container conteudo">
+  <!-- BOTÃO VOLTAR -->
+  <div class="back-button">
+    <button class="btn-voltar" onclick="voltarPagina()">
+      ← Voltar para projetos
+    </button>
+  </div>
 
-    <h1 id="titulo-projeto" class="titulo">Título do Projeto</h1>
-
-    <p id="descricao-projeto" class="descricao-projeto">
-      Aqui vai aparecer a descrição completa do projeto carregada pelo JS.
-    </p>
-
-    <!-- GALERIA -->
-    <h2>Galeria de Imagens</h2>
-
-    <div id="galeria" class="galeria-grid">
-      <img src="/uploads/teste1.png" alt="">
-      <img src="/uploads/teste2.png" alt="">
-      <img src="/uploads/teste3.png" alt="">
+  <!-- CONTEÚDO DINÂMICO -->
+  <div class="detalhes-container" id="detalhesContainer">
+    <div class="loading-container">
+      <div class="loading-spinner"></div>
+      <p>Carregando detalhes do projeto...</p>
     </div>
+  </div>
 
-
-    <!-- Modal para imagem -->
-<div id="modal-img" class="modal-img">
-  <span class="close">&times;</span>
-  <img class="modal-content" id="imgFull">
-</div>
-
-
-    <!-- COMENTÁRIOS -->
-    <section class="comentarios-sec">
-      <h2>Comentários</h2>
-
-      <div id="lista-comentarios" class="lista-comentarios">
-        <div class="comentario-card">
-          <h4>Usuário Anônimo</h4>
-          <p>Excelente projeto! Muito bem finalizado.</p>
-        </div>
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <h2>Construa os seus sonhos com qualidade!</h2>
+      <div class="redes-sociais">
+        <a href="mailto:contato@obravia.com">📧 contato@obravia.com</a>
+        <a href="#" target="_blank">📘 Facebook</a>
+        <a href="#" target="_blank">📸 Instagram</a>
+        <a href="#" target="_blank">📱 WhatsApp</a>
       </div>
+      <p>Mais info: 873032005 / 848164250</p>
+      <p>© 2026 OBRAVIA — Todos os direitos reservados</p>
+    </div>
+  </footer>
 
-      <h3>Deixar um Comentário</h3>
+  <!-- MODAL CONTACTO -->
+  <div class="modal-overlay" id="modalContacto">
+    <div class="modal">
+      <p class="modal-titulo" id="modalTitulo">Pedir contacto</p>
+      <p class="modal-sub">Envie uma mensagem ao engenheiro. A OBRAVIA encaminha o pedido.</p>
+      <label>O seu nome</label>
+      <input type="text" placeholder="Ex: Carlos Nhantumbo" id="clienteNome">
+      <label>Telefone / WhatsApp</label>
+      <input type="tel" placeholder="+258 8X XXX XXXX" id="clienteTel">
+      <label>Tipo de projecto</label>
+      <select id="clienteTipo">
+        <option>Selecionar...</option>
+        <option>Moradia residencial</option>
+        <option>Edifício comercial</option>
+        <option>Infra-estrutura</option>
+        <option>Fiscalização de obra</option>
+        <option>Consulta técnica</option>
+      </select>
+      <label>Mensagem</label>
+      <textarea id="clienteMensagem" placeholder="Descreva o seu projecto brevemente..."></textarea>
+      <div class="modal-acoes">
+        <button class="btn-cancelar" onclick="fecharModal('modalContacto')">Cancelar</button>
+        <button class="btn-primary" onclick="enviarPedido()">Enviar pedido</button>
+      </div>
+    </div>
+  </div>
 
-      <form id="form-comentario">
-        <textarea name="texto" class="comentario" placeholder="Escreva seu comentário..." required></textarea>
-        <button class="btn-comentar" style="margin-top: 10px;">Enviar Comentário</button>
-      </form>
-    </section>
+  <!-- TOAST -->
+  <div class="toast" id="toast">
+    <span id="toastMensagem">Pedido enviado com sucesso!</span>
+  </div>
 
-
-    
-
-  </main>
-
-  <!-- JS CORRETO -->
-  <script src="/js/detalhes.js"></script>
+  <script src="js/detalhes.js"></script>
 </body>
 </html>

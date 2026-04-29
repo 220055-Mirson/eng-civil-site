@@ -1,89 +1,330 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Painel Administrativo | Ugembe</title>
-
-  <!-- CSS CORRETO -->
-  <link rel="stylesheet" href="/css/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - OBRAVIA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: #f5f5f5;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #D85A30; margin-bottom: 0.5rem; font-family: 'Syne', sans-serif; }
+        .subtitle { color: #666; margin-bottom: 2rem; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th { background: #f8f9fa; color: #333; font-weight: 600; }
+        .btn-aprovar {
+            background: #3B6D11;
+            color: white;
+            border: none;
+            padding: 6px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .btn-aprovar:hover { background: #2c520d; }
+        .btn-logout {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        .status-pendente { color: #ff6b6b; font-weight: bold; }
+        .status-aprovado { color: #3B6D11; font-weight: bold; }
+        .loading { text-align: center; padding: 2rem; color: #666; }
+        .user-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+        .login-form {
+            max-width: 400px;
+            margin: 50px auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .login-form h2 {
+            color: #D85A30;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        .login-form input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+        }
+        .login-form button {
+            width: 100%;
+            padding: 12px;
+            background: #D85A30;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        .error-msg {
+            background: #ff6b6b;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+    </style>
 </head>
-
 <body>
+    <div id="app"></div>
 
-  <!-- NAVBAR -->
-  <header class="navbar">
-    <div class="container nav-container">
-      <div class="logo">
-        <img src="/img/logotipo.png" alt="Logo Ugembe">
-      </div>
-
-      <ul class="nav-links">
-        <li><a href="/index.html">Início</a></li>
-        <li><a href="/projectos.html">Projetos</a></li>
-        <li><a href="/sobre.html">Sobre</a></li>
-        <li><a href="#" class="btn-sair" onclick="logout()">Sair</a></li>
-      </ul>
-    </div>
-  </header>
-
-  <main class="container conteudo">
-
-    <h1 class="titulo">Painel Administrativo</h1>
-
-    <!-- FORM DE CADASTRO -->
-    <section class="card admin-card">
-      <h2>Adicionar Novo Projeto</h2>
-
-      <br><form id="form-projeto" enctype="multipart/form-data">
-
-        <strong><p><label>Título do Projeto</label></p></strong>
-        <p><input type="text" name="titulo" required class="input-text"></p>
-
-        <strong><br><p><label>Descrição</label></p></strong>
-        <textarea name="descricao" required class="comentario" style="height:100px"></textarea>
-
-        <label>Carregar Imagens (múltiplas)</label>
-        <input type="file" name="imagens" accept="image/*" multiple required>
-
-        <button class="btn-comentar" style="margin-top:15px">
-          Salvar Projeto
-        </button>
-
-      </form>
-    </section>
-
-    <!-- LISTA DE PROJETOS -->
-    <h2 style="margin-top:40px;">Projetos Cadastrados</h2>
-
-    <div id="lista-projetos" class="grid-cards">
-
-      <!-- EXEMPLO -->
-      <div class="card">
-        <img src="/uploads/teste1.png" alt="">
-        <h3>Casa Térrea — Matola</h3>
-        <p>Projeto residencial concluído no bairro X.</p>
-
-        <div class="admin-actions">
-      
-          <button class="btn-apagar">Apagar</button>
-        </div>
-      </div>
-
-      <!-- Projetos reais virão do JS -->
-    </div>
-
-  </main>
-
-  <!-- JS CORRETO -->
-  <script src="/js/admin.js"></script>
-
-  <script>
-    function logout() {
-      localStorage.clear();
-      window.location.href = "/login.html";
-    }
-  </script>
-
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        
+        function getAuthToken() {
+            return localStorage.getItem('authToken');
+        }
+        
+        // Página inicial - decide o que mostrar
+        function init() {
+            const token = getAuthToken();
+            if (token) {
+                verificarToken(token);
+            } else {
+                mostrarTelaLogin();
+            }
+        }
+        
+        async function verificarToken(token) {
+            try {
+                const response = await fetch(`${API_URL}/verificar-token`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token })
+                });
+                
+                const result = await response.json();
+                
+                if (result.valido && (result.usuario.role === 'admin' || result.usuario.tipo === 'admin')) {
+                    mostrarTelaAdmin(result.usuario);
+                } else {
+                    localStorage.clear();
+                    mostrarTelaLogin();
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                mostrarTelaLogin();
+            }
+        }
+        
+        function mostrarTelaLogin() {
+            document.getElementById('app').innerHTML = `
+                <div class="login-form">
+                    <h2>🔐 Acesso Administrativo</h2>
+                    <div id="loginError" class="error-msg" style="display:none;"></div>
+                    <input type="email" id="email" placeholder="Email" autocomplete="off">
+                    <input type="password" id="senha" placeholder="Senha">
+                    <button onclick="fazerLogin()">Entrar</button>
+                    <p style="text-align: center; margin-top: 1rem;">
+                        <a href="index.html" style="color: #D85A30;">← Voltar para página inicial</a>
+                    </p>
+                </div>
+            `;
+        }
+        
+        async function fazerLogin() {
+            const email = document.getElementById('email').value.trim();
+            const senha = document.getElementById('senha').value;
+            const errorDiv = document.getElementById('loginError');
+            
+            errorDiv.style.display = 'none';
+            
+            if (!email || !senha) {
+                errorDiv.textContent = 'Preencha email e senha!';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            
+            // Mostrar loading
+            const btn = event.target;
+            const originalText = btn.innerText;
+            btn.innerText = 'Entrando...';
+            btn.disabled = true;
+            
+            try {
+                const response = await fetch(`${API_URL}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, senha })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    const isAdmin = result.user.role === 'admin' || result.user.tipo === 'admin';
+                    
+                    if (isAdmin) {
+                        localStorage.setItem('authToken', result.token);
+                        localStorage.setItem('usuarioLogado', result.user.nome);
+                        localStorage.setItem('role', result.user.role);
+                        localStorage.setItem('userEmail', result.user.email);
+                        // Redirecionar ou recarregar
+                        window.location.href = 'admin.html';
+                    } else {
+                        errorDiv.textContent = 'Acesso restrito a administradores!';
+                        errorDiv.style.display = 'block';
+                        btn.innerText = originalText;
+                        btn.disabled = false;
+                    }
+                } else {
+                    errorDiv.textContent = result.error || 'Erro ao fazer login';
+                    errorDiv.style.display = 'block';
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                }
+            } catch (error) {
+                errorDiv.textContent = 'Erro ao conectar com o servidor';
+                errorDiv.style.display = 'block';
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        }
+        
+        function mostrarTelaAdmin(usuario) {
+            document.getElementById('app').innerHTML = `
+                <div class="container">
+                    <div class="user-info">
+                        <div>
+                            <h1>🔐 Painel Administrativo</h1>
+                            <p class="subtitle">Gerencie os cadastros pendentes</p>
+                        </div>
+                        <div>
+                            <span style="margin-right: 1rem; color: #D85A30;">👋 ${usuario.nome}</span>
+                            <button class="btn-logout" onclick="logout()">Sair</button>
+                        </div>
+                    </div>
+                    <div id="usuariosContainer">
+                        <div class="loading">📦 Carregando usuários pendentes...</div>
+                    </div>
+                </div>
+            `;
+            carregarPendentes();
+        }
+        
+        async function carregarPendentes() {
+            const token = getAuthToken();
+            const container = document.getElementById('usuariosContainer');
+            
+            try {
+                const response = await fetch(`${API_URL}/admin/usuarios/pendentes`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const usuarios = await response.json();
+                    if (usuarios.length === 0) {
+                        container.innerHTML = '<div class="loading">✅ Nenhum usuário pendente no momento!</div>';
+                    } else {
+                        let html = `
+                            <table>
+                                <thead>
+                                    <tr><th>Nome</th><th>Email</th><th>Tipo</th><th>Telefone</th><th>Status</th><th>Ação</th></tr>
+                                </thead>
+                                <tbody>
+                        `;
+                        usuarios.forEach(user => {
+                            html += `
+                                <tr id="user-${user.id}">
+                                    <td>${user.nome || '-'}</td>
+                                    <td>${user.email}</td>
+                                    <td>${user.tipo || 'usuario'}</td>
+                                    <td>${user.telefone || '-'}</td>
+                                    <td class="status-pendente">${user.status}</td>
+                                    <td><button class="btn-aprovar" onclick="aprovarUsuario(${user.id})">✓ Aprovar</button></td>
+                                </tr>
+                            `;
+                        });
+                        html += `</tbody></table>`;
+                        container.innerHTML = html;
+                    }
+                } else if (response.status === 401) {
+                    container.innerHTML = '<div class="loading">🔐 Sessão expirada. <button onclick="logout()" style="margin-top: 1rem; padding: 8px 20px; background: #D85A30; color: white; border: none; border-radius: 20px; cursor: pointer;">Fazer login</button></div>';
+                } else {
+                    container.innerHTML = '<div class="loading">❌ Erro ao carregar usuários</div>';
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                container.innerHTML = '<div class="loading">❌ Erro de conexão com o servidor</div>';
+            }
+        }
+        
+        async function aprovarUsuario(id) {
+            const token = getAuthToken();
+            
+            if (!confirm('✓ Aprovar este usuário?')) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/admin/usuarios/${id}/aprovar`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    alert('✅ Usuário aprovado com sucesso!');
+                    document.getElementById(`user-${id}`).remove();
+                    // Verificar se ainda tem usuários
+                    const remainingRows = document.querySelectorAll('#usuariosContainer tbody tr');
+                    if (remainingRows.length === 0) {
+                        document.getElementById('usuariosContainer').innerHTML = '<div class="loading">✅ Nenhum usuário pendente no momento!</div>';
+                    }
+                } else {
+                    alert('❌ Erro ao aprovar usuário');
+                }
+            } catch (error) {
+                alert('Erro de conexão');
+            }
+        }
+        
+        function logout() {
+            localStorage.clear();
+            window.location.href = 'admin.html';
+        }
+        
+        // Expor funções globalmente
+        window.fazerLogin = fazerLogin;
+        window.aprovarUsuario = aprovarUsuario;
+        window.logout = logout;
+        
+        // Iniciar
+        init();
+    </script>
 </body>
 </html>

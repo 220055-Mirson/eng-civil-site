@@ -2,144 +2,175 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Site Ugembe</title>
-
-  <!-- CSS -->
-  <link rel="stylesheet" href="/css/style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="shortcut icon" href="img/LOGO.png" type="image/x-icon">
+  <title>OBRAVIA — Plataforma de Engenheiros</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
 </head>
-
 <body>
 
   <!-- NAVBAR -->
   <header class="navbar">
-    <div class="container nav-container">
-
-      <!-- LOGO -->
+    <div class="nav-container">
       <div class="logo">
-        <img src="/img/logotipo.png" alt="Logo Ugembe">
+        <img src="img/OBRAVIA.jpeg" alt="Logo OBRAVIA">
       </div>
-
-      <!-- BEM-VINDO -->
-      <div class="welcome-user destaque" id="bemVindo">
-        Bem-vindo
-      </div>
-
-      <!-- MENU -->
-      <ul class="nav-links">
-        <li id="menuAdmin"><a href="/admin.html">Admin</a></li>
-        <li><a href="/construcoes.html">Construções</a></li>
-        <li><a href="/sobre.html">Sobre</a></li>
-        <li><a href="/login.html" class="btn-sair" onclick="logout()">Sair</a></li>
+      <div class="welcome-user" id="bemVindo">Bem-vindo</div>
+      <ul class="nav-links"> 
+      <li><a href="#" id="addProjectBtn" class="btn-add-project" onclick="abrirModalLoginProjetos(); return false;">Adicionar Projetos</a></li>
+        <li><a href="sobre.html">Sobre</a></li>
+        <li><a href="admin.html">Admin</a></li>
+        <li><a href="#" class="btn-sair" onclick="logout()">Sair</a></li>
       </ul>
-
     </div>
   </header>
 
-  <!-- CONTEÚDO PRINCIPAL -->
-  <main class="container conteudo">
-    <h1 class="titulo">Projetos Recentes</h1>
+  <!-- HERO -->
+  <section class="hero">
+    <h1>Engenheiros de confiança,<br><span>perto de si</span></h1>
+    <p>Explore projectos reais, veja o trabalho de engenheiros verificados e peça contacto directamente.</p>
+    <div class="hero-actions">
+      <a href="cadastro-engenheiro.html" class="btn-primary">Criar perfil de engenheiro</a>
+      <button class="btn-outline" onclick="abrirModalPedido()">Pedir um serviço</button>
+    </div>
+  </section>
 
-    <div class="grid-cards">
+  <!-- FILTROS -->
+  <div class="filtros-bar">
+    <h2>Projetos recentes</h2>
+    <button class="filtro-btn ativo" data-categoria="todos" onclick="filtrarProjetos('todos')">Todos</button>
+    <button class="filtro-btn" data-categoria="Residencial" onclick="filtrarProjetos('Residencial')">Residencial</button>
+    <button class="filtro-btn" data-categoria="Comercial" onclick="filtrarProjetos('Comercial')">Comercial</button>
+    <button class="filtro-btn" data-categoria="Infra-estrutura" onclick="filtrarProjetos('Infra-estrutura')">Infra-estrutura</button>
+    <button class="filtro-btn" data-categoria="Industrial" onclick="filtrarProjetos('Industrial')">Industrial</button>
+    <button class="filtro-btn" data-categoria="Educação" onclick="filtrarProjetos('Educação')">Educação</button>
+  </div>
 
-      <!-- CARD 1 -->
-      <div class="card" onclick="abrirDetalhes()">
-        <img src="/uploads/teste1.png" alt="Projeto 1">
-        <h3>Título do Projeto</h3>
-        <p>Descrição breve do projeto apresentado.</p>
-        <textarea class="comentario" placeholder="Deixe um comentário..."></textarea>
-        <button class="btn-comentar">Comentar</button>
+  <!-- GRID DE CARDS (dinâmica) -->
+  <main>
+    <div class="grid-cards" id="projetosGrid">
+      <div class="loading-projetos">
+        <div class="loading-spinner"></div>
+        <p>Carregando projetos...</p>
       </div>
-
-      <!-- CARD 2 -->
-      <div class="card" onclick="abrirDetalhes()">
-        <img src="/uploads/teste2.png" alt="Projeto 2">
-        <h3>Título do Projeto</h3>
-        <p>Descrição breve do projeto apresentado.</p>
-        <textarea class="comentario" placeholder="Deixe um comentário..."></textarea>
-        <button class="btn-comentar">Comentar</button>
-      </div>
-
-      <!-- CARD 3 -->
-      <div class="card" onclick="abrirDetalhes()">
-        <img src="/uploads/teste3.png" alt="Projeto 3">
-        <h3>Título do Projeto</h3>
-        <p>Descrição breve do projeto apresentado.</p>
-        <textarea class="comentario" placeholder="Deixe um comentário..."></textarea>
-        <button class="btn-comentar">Comentar</button>
-      </div>
-
-      <!-- CARD 4 -->
-      <div class="card" onclick="abrirDetalhes()">
-        <img src="/uploads/teste4.png" alt="Projeto 4">
-        <h3>Título do Projeto</h3>
-        <p>Descrição breve do projeto apresentado.</p>
-        <textarea class="comentario" placeholder="Deixe um comentário..."></textarea>
-        <button class="btn-comentar">Comentar</button>
-      </div>
-
     </div>
   </main>
 
+  <!-- PEDIDOS DE CLIENTES -->
+  <section class="fase2-section">
+    <div class="fase2-header">
+      <h2>Pedidos de clientes</h2>
+      <span class="badge-fase badge-fase2">Intermediação</span>
+    </div>
+    <div class="pedidos-grid" id="pedidosGrid">
+      <!-- Pedidos carregados via JavaScript -->
+    </div>
+  </section>
+
   <!-- FOOTER -->
-  <footer> 
-    <div class="footer">
-      <h2>Construa seus sonhos com qualidade!</h2>
-
+  <footer>
+    <div class="footer-inner">
+      <h2>Construa os seus sonhos com qualidade!</h2>
       <div class="redes-sociais">
-        <a href="mailto:ugembenedio@gmail.com">
-          <img src="/img/email.png" alt="E-mail">
+        <a href="mailto:contato@obravia.com">
+          <img src="img/email.png" alt="E-mail">
         </a>
-
-        <a href="https://facebook.com/Nedio Nani Ugembe" target="_blank">
-          <img src="/img/FB.png" alt="Facebook">
+        <a href="#" target="_blank">
+          <img src="img/FB.png" alt="Facebook">
         </a>
-
-        <a href="https://instagram.com/nedio_ugembe" target="_blank">
-          <img src="/img/Instagram.png" alt="Instagram">
+        <a href="#" target="_blank">
+          <img src="img/Instagram.png" alt="Instagram">
         </a>
-
-        <a href="https://wa.me/+258847169230" target="_blank">
-          <img src="/img/whatsapp.png" alt="Whatsapp">
+        <a href="#" target="_blank">
+          <img src="img/whatsapp.png" alt="Whatsapp">
         </a>
       </div>
-
-      <p>Mais info: 868814400 / 833752673</p>
-      <p>© 2026 Eng-Ugembe - Todos os direitos reservados</p>
-      <p>Dev-Mirson</p>
+      <p>Mais info: 873032005 / 848164250</p>
+      <p>© 2026 OBRAVIA — Todos os direitos reservados</p>
+      <p>DevForge</p>
     </div>
   </footer>
 
+  <!-- MODAL: Pedir contacto de engenheiro -->
+  <div class="modal-overlay" id="modalContacto">
+    <div class="modal">
+      <p class="modal-titulo" id="modalTitulo">Pedir contacto</p>
+      <p class="modal-sub">Envie uma mensagem ao engenheiro. A OBRAVIA encaminha o pedido.</p>
+      <label>O seu nome</label>
+      <input type="text" placeholder="Ex: Carlos Nhantumbo" id="clienteNome">
+      <label>Telefone / WhatsApp</label>
+      <input type="tel" placeholder="+258 8X XXX XXXX" id="clienteTel">
+      <label>Tipo de projecto</label>
+      <select id="clienteTipo">
+        <option value="">Selecionar...</option>
+        <option>Moradia residencial</option>
+        <option>Edifício comercial</option>
+        <option>Infra-estrutura</option>
+        <option>Fiscalização de obra</option>
+        <option>Consulta técnica</option>
+        <option>Outro</option>
+      </select>
+      <label>Mensagem</label>
+      <textarea id="clienteMensagem" placeholder="Descreva o seu projecto brevemente..."></textarea>
+      <div class="modal-acoes">
+        <button class="btn-cancelar" onclick="fecharModal('modalContacto')">Cancelar</button>
+        <button class="btn-primary" onclick="enviarPedido()">Enviar pedido</button>
+      </div>
+    </div>
+  </div>
 
+  <!-- MODAL: Publicar pedido de serviço -->
+  <div class="modal-overlay" id="modalPedido">
+    <div class="modal">
+      <p class="modal-titulo">Publicar pedido de serviço</p>
+      <p class="modal-sub">A OBRAVIA sugere o engenheiro mais próximo e adequado ao seu projecto.</p>
+      <label>O seu nome</label>
+      <input type="text" id="pedidoNome" placeholder="Ex: Fátima Salomão">
+      <label>Localização da obra</label>
+      <input type="text" id="pedidoLocal" placeholder="Ex: Maputo, Zimpeto">
+      <label>Tipo de serviço</label>
+      <select id="pedidoTipo">
+        <option value="">Selecionar...</option>
+        <option>Projecto de construção</option>
+        <option>Fiscalização</option>
+        <option>Avaliação estrutural</option>
+        <option>Topografia</option>
+        <option>Outro</option>
+      </select>
+      <label>Descrição do projecto</label>
+      <textarea id="pedidoDesc" placeholder="Descreva o projecto, prazo, orçamento estimado..."></textarea>
+      <div class="modal-acoes">
+        <button class="btn-cancelar" onclick="fecharModal('modalPedido')">Cancelar</button>
+        <button class="btn-primary" onclick="enviarPedidoServico()">Publicar pedido</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast">
+    <div class="toast-icon"></div>
+    <span id="toastMensagem">Pedido enviado com sucesso!</span>
+  </div>
+
+<!-- MODAL: Login para Adicionar Projetos -->
+<div class="modal-overlay" id="modalLoginProjetos">
+    <div class="modal">
+        <p class="modal-titulo">🔐 Autenticação Necessária</p>
+        <p class="modal-sub">Para publicar projetos, você precisa ser um engenheiro cadastrado</p>
+        <label>Email</label>
+        <input type="email" id="loginEmail" placeholder="seu@email.com">
+        <label>Senha</label>
+        <input type="password" id="loginSenha" placeholder="Sua senha">
+        <div id="loginError" class="error-message-login" style="display:none;"></div>
+        <div class="modal-acoes">
+            <button class="btn-cancelar" onclick="fecharModal('modalLoginProjetos')">Cancelar</button>
+            <button class="btn-primary" onclick="verificarEngenheiro()">Verificar Credenciais</button>
+        </div>
+        <p class="modal-footer-text">Não é engenheiro? <a href="cadastro-engenheiro.html">Cadastre-se aqui</a></p>
+    </div>
+</div>
   
-  <!-- SCRIPTS -->
-  <script src="/js/index.js"></script>
-
-  <script>
-    function abrirDetalhes() {
-      window.location.href = "/detalhes.html";
-    }
-
-    const nome = localStorage.getItem("usuarioLogado");
-    const role = localStorage.getItem("role");
-
-    if (nome) {
-      document.getElementById("bemVindo").innerText = `Bem-vindo, ${nome}`;
-    }
-
-    const menuAdmin = document.getElementById("menuAdmin");
-    if (role !== "admin" && menuAdmin) {
-      menuAdmin.style.display = "none";
-    }
-
-    function logout() {
-      localStorage.removeItem("usuarioLogado");
-      localStorage.removeItem("role");
-      window.location.href = "login.html";
-    }
-  </script>
-
-
-
+  <script src="js/script.js"></script>
 </body>
 </html>

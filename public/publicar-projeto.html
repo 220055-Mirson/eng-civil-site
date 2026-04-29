@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OBRAVIA — Gerir Projetos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style-publicar.css">
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <img src="/public/img/OBRAVIA.jpeg" alt="Logo OBRAVIA" onerror="this.src='https://placehold.co/200x55/D85A30/FFFFFF?text=OBRAVIA'">
+            </div>
+            <div class="welcome-user" id="bemVindo">Bem-vindo</div>
+            <ul class="nav-links">
+                <li><a href="index.html">Início</a></li>
+                <li><a href="publicar-projeto.html" class="active">Meus Projetos</a></li>
+                <li><a href="#" class="btn-sair" onclick="logout()">Sair</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <div class="form-container">
+        <a href="index.html" class="btn-voltar">← Voltar para página inicial</a>
+        
+        <div class="form-card">
+            <div class="form-header">
+                <h1>📐 Publicar Novo Projeto</h1>
+                <p>Compartilhe seus projetos com clientes e mostre seu trabalho</p>
+            </div>
+            <div class="form-body">
+                <form id="formProjeto">
+                    <div class="form-group">
+                        <label>Título do Projeto <span>*</span></label>
+                        <input type="text" id="projetoTitulo" placeholder="Ex: Moradia T4 de Luxo" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Categoria</label>
+                        <select id="projetoCategoria">
+                            <option value="Residencial">🏠 Residencial</option>
+                            <option value="Comercial">🏢 Comercial</option>
+                            <option value="Infra-estrutura">🌉 Infra-estrutura</option>
+                            <option value="Industrial">🏭 Industrial</option>
+                            <option value="Educação">📚 Educação</option>
+                            <option value="Saúde">🏥 Saúde</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Localização</label>
+                        <input type="text" id="projetoLocal" placeholder="Ex: Maputo, Matola, Beira...">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Descrição do Projeto <span>*</span></label>
+                        <textarea id="projetoDescricao" placeholder="Descreva detalhadamente o projeto, materiais utilizados, desafios e resultados..." required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Tags (separadas por vírgula)</label>
+                        <input type="text" id="projetoTags" placeholder="Ex: Betão armado, Sustentável, Moderno">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Fotos do Projeto <span>*</span> (múltiplas fotos)</label>
+                        <div class="upload-area" id="uploadArea">
+                            <div class="upload-icon">📸</div>
+                            <div class="upload-text">
+                                Clique ou arraste imagens para cá<br>
+                                <strong>Suporta: JPG, PNG, GIF</strong> (máx 10MB cada)
+                            </div>
+                        </div>
+                        <input type="file" id="fotosInput" multiple accept="image/*" style="display: none;">
+                        <div id="previewContainer" class="preview-grid"></div>
+                    </div>
+
+                    <button type="submit" class="btn-submit">📤 Publicar Projeto</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="projetos-publicados" id="projetosPublicados">
+        <div class="section-title">
+            📋 Meus Projetos
+            <span id="contadorProjetos">0</span>
+        </div>
+        <div id="meusProjetosGrid" class="projetos-grid">
+            <div class="empty-projetos">📭 Carregando projetos...</div>
+        </div>
+    </div>
+
+    <!-- MODAL EDITAR -->
+    <div class="modal-overlay" id="modalEditar">
+        <div class="modal">
+            <h3>✏️ Editar Projeto</h3>
+            <form id="formEditar">
+                <input type="hidden" id="editId">
+                <div class="form-group">
+                    <label>Título</label>
+                    <input type="text" id="editTitulo" required>
+                </div>
+                <div class="form-group">
+                    <label>Categoria</label>
+                    <select id="editCategoria">
+                        <option value="Residencial">Residencial</option>
+                        <option value="Comercial">Comercial</option>
+                        <option value="Infra-estrutura">Infra-estrutura</option>
+                        <option value="Industrial">Industrial</option>
+                        <option value="Educação">Educação</option>
+                        <option value="Saúde">Saúde</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Localização</label>
+                    <input type="text" id="editLocal">
+                </div>
+                <div class="form-group">
+                    <label>Descrição</label>
+                    <textarea id="editDescricao" rows="4" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Tags</label>
+                    <input type="text" id="editTags" placeholder="Separadas por vírgula">
+                </div>
+                <button type="submit" class="btn-salvar">💾 Salvar alterações</button>
+                <button type="button" class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <p>© 2026 OBRAVIA — Plataforma de Engenharia Civil</p>
+    </footer>
+
+    <div class="toast" id="toast">
+        <span id="toastMsg">Operação realizada com sucesso!</span>
+    </div>
+
+    <script src="js/publicar-projeto.js"></script>
+</body>
+</html>

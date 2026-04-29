@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>OBRAVIA — Verificação em 3 Níveis | Cadastro Profissional</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style-cadastro.css">
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <div class="logo">
+      <h1>OBRAVIA<span> Verificação</span></h1>
+    </div>
+    <div class="back-link">
+      <a href="index.html">← Voltar para página inicial</a>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+  <div class="page-hero">
+    <h1>Verificação em 3 Níveis</h1>
+    <p>Sistema de credenciamento para garantir qualidade e confiança em cada projeto</p>
+  </div>
+
+  <div class="niveis-grid">
+    <!-- NÍVEL 1: EMPRESAS -->
+    <div class="nivel-card nivel-empresa">
+      <div class="nivel-header">
+        <div class="nivel-numero">NÍVEL 1</div>
+        <h2>Empresa / Construtora</h2>
+        <p>Para empresas que desejam publicar projetos e receber orçamentos</p>
+      </div>
+      <div class="nivel-body">
+        <ul class="documentos-lista">
+          <li>Alvará de construção válido (emitido pelo Estado)</li>
+          <li>NUIT da empresa</li>
+          <li>Bilhete de identidade do responsável legal</li>
+        </ul>
+        <div class="badge-status badge-verificacao">✓ Verificação documental obrigatória</div>
+        <button class="btn-cadastrar btn-empresa" onclick="abrirModal('empresa')">Cadastrar como Empresa</button>
+        <p style="font-size: 0.7rem; margin-top: 0.8rem; color: #888;">*Sem documentos verificados, o perfil não fica visível ao público</p>
+      </div>
+    </div>
+
+    <!-- NÍVEL 2: ENGENHEIRO SÊNIOR -->
+    <div class="nivel-card nivel-senior">
+      <div class="nivel-header">
+        <div class="nivel-numero">NÍVEL 2</div>
+        <h2>Engenheiro Sénior</h2>
+        <p>Profissional verificado pela Ordem dos Engenheiros de Moçambique</p>
+      </div>
+      <div class="nivel-body">
+        <ul class="documentos-lista">
+          <li>Número de membro da Ordem dos Engenheiros de Moçambique</li>
+          <li>Cédula profissional ativa e válida</li>
+          <li>Diploma de Engenharia (reconhecido pelo INNOQ)</li>
+          <li>Portfólio de projetos realizados</li>
+        </ul>
+        <div class="badge-status badge-verificacao">✓ Verificação pela Ordem</div>
+        <button class="btn-cadastrar btn-senior" onclick="abrirModal('senior')">Cadastrar como Eng. Sénior</button>
+        <p style="font-size: 0.7rem; margin-top: 0.8rem; color: #888;">*Verificação automática com a Ordem dos Engenheiros</p>
+      </div>
+    </div>
+
+    <!-- NÍVEL 3: ENGENHEIRO JÚNIOR / TALENTO -->
+    <div class="nivel-card nivel-junior">
+      <div class="nivel-header">
+        <div class="nivel-numero">NÍVEL 3</div>
+        <h2>Eng. Junior</h2>
+        <p>Engenheiro Júnior com potencial e formação verificada</p>
+      </div>
+      <div class="nivel-body">
+        <ul class="documentos-lista">
+          <li>Diploma verificado</li>
+          <li>Perfil identificado como "Engenheiro Júnior"</li>
+          <li>Até 3 anos de experiência</li>
+        </ul>
+        <div class="badge-status badge-junior">🌟 Secção "Talentos em Crescimento"</div>
+        <button class="btn-cadastrar btn-junior" onclick="abrirModal('junior')">Cadastrar como Júnior</button>
+        <p style="font-size: 0.7rem; margin-top: 0.8rem; color: #888;">*Perfil público separado com regras próprias</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECÇÃO TALENTOS EM CRESCIMENTO -->
+  <div class="talentos-section">
+    <div class="talentos-header">
+      <h2>🌟 Talentos em Crescimento</h2>
+      <p>Secção especial para engenheiros juniores com regras próprias e transparência total</p>
+    </div>
+    <div class="regras-grid">
+      <div class="regra-card">
+        <div class="regra-icon">📜</div>
+        <h4>Entrada Verificada</h4>
+        <p>Cédula da Ordem válida + Diploma reconhecido</p>
+      </div>
+      <div class="regra-card">
+        <div class="regra-icon">🏷️</div>
+        <h4>Identificação Clara</h4>
+        <p>Perfil marcado como "Engenheiro Júnior" para total transparência</p>
+      </div>
+      <div class="regra-card">
+        <div class="regra-icon">📊</div>
+        <h4>Acompanhamento</h4>
+        <p>Projetos com selo "Supervisionado" quando orientado por sénior</p>
+      </div>
+    </div>
+    <p style="text-align: center; font-size: 0.85rem; color: #5F5E5A; margin-top: 1rem;">
+      ⚡ Engenheiros juniores aparecem exclusivamente na secção "Talentos em Crescimento" — não misturados com os seniores, garantindo transparência para o cliente.
+    </p>
+  </div>
+</div>
+
+<!-- MODAL EMPRESA -->
+<div id="modalEmpresa" class="modal-overlay">
+  <div class="modal">
+    <span class="fechar-modal" onclick="fecharModal('modalEmpresa')">&times;</span>
+    <div class="modal-header">
+      <h3>📄 Cadastro de Empresa</h3>
+      <p style="color:#666;">Preencha os dados e envie os documentos para verificação</p>
+    </div>
+    <form id="formEmpresa">
+      <div class="form-group">
+        <label>Nome da Empresa <span>*</span></label>
+        <input type="text" id="empresaNome" required>
+      </div>
+      <div class="form-group">
+        <label>E-mail <span>*</span></label>
+        <input type="email" id="empresaEmail" required placeholder="contato@empresa.com">
+      </div>
+      <div class="form-group">
+        <label>Senha <span>*</span></label>
+        <input type="password" id="empresaSenha" required placeholder="Mínimo 6 caracteres">
+      </div>
+      <div class="form-group">
+        <label>Confirmar Senha <span>*</span></label>
+        <input type="password" id="empresaConfirmarSenha" required>
+      </div>
+      <div class="form-group">
+        <label>NUIT <span>*</span></label>
+        <input type="text" id="empresaNuit" required placeholder="123456789">
+      </div>
+      <div class="form-group">
+        <label>Nome do Responsável Legal <span>*</span></label>
+        <input type="text" id="empresaResponsavel" required>
+      </div>
+      <div class="form-group">
+        <label>BI / Cartão de Identificação <span>*</span></label>
+        <input type="text" id="empresaBi" required>
+      </div>
+      <div class="form-group">
+        <label>Upload do Alvará de Construção <span>*</span></label>
+        <div class="upload-area" id="uploadAlvara" onclick="document.getElementById('alvaraInput').click()">
+          📎 Clique para anexar (PDF/Imagem)
+        </div>
+        <input type="file" id="alvaraInput" style="display: none;" accept="image/*,application/pdf">
+        <div id="alvaraNome" class="file-name"></div>
+      </div>
+      <div class="form-group">
+        <label>Upload do Comprovativo de NUIT <span>*</span></label>
+        <div class="upload-area" id="uploadNuit" onclick="document.getElementById('nuitInput').click()">
+          📎 Anexar comprovativo
+        </div>
+        <input type="file" id="nuitInput" style="display: none;" accept="image/*,application/pdf">
+        <div id="nuitNome" class="file-name"></div>
+      </div>
+      <button type="button" class="btn-submit" onclick="enviarCadastro('empresa')">Enviar para Verificação</button>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL ENGENHEIRO SÊNIOR -->
+<div id="modalSenior" class="modal-overlay">
+  <div class="modal">
+    <span class="fechar-modal" onclick="fecharModal('modalSenior')">&times;</span>
+    <div class="modal-header">
+      <h3>🎓 Cadastro de Engenheiro Sénior</h3>
+      <p style="color:#666;">Verificação pela Ordem dos Engenheiros de Moçambique</p>
+    </div>
+    <form id="formSenior">
+      <div class="form-group">
+        <label>Nome Completo <span>*</span></label>
+        <input type="text" id="seniorNome" required>
+      </div>
+      <div class="form-group">
+        <label>E-mail <span>*</span></label>
+        <input type="email" id="seniorEmail" required placeholder="seuemail@exemplo.com">
+      </div>
+      <div class="form-group">
+        <label>Senha <span>*</span></label>
+        <input type="password" id="seniorSenha" required placeholder="Mínimo 6 caracteres">
+      </div>
+      <div class="form-group">
+        <label>Confirmar Senha <span>*</span></label>
+        <input type="password" id="seniorConfirmarSenha" required>
+      </div>
+      <div class="form-group">
+        <label>Número de Membro da Ordem <span>*</span></label>
+        <input type="text" id="seniorOrdem" required placeholder="OEM-XXXXX">
+      </div>
+      <div class="form-group">
+        <label>Cédula Profissional <span>*</span></label>
+        <input type="text" id="seniorCedulaNumero" required>
+      </div>
+      <div class="form-group">
+        <label>Data de Validade da Cédula</label>
+        <input type="date" id="seniorValidade">
+      </div>
+      <div class="form-group">
+        <label>Upload do Diploma <span>*</span></label>
+        <div class="upload-area" id="uploadDiploma" onclick="document.getElementById('diplomaInput').click()">
+          📎 Anexar diploma reconhecido
+        </div>
+        <input type="file" id="diplomaInput" style="display: none;" accept="image/*,application/pdf">
+        <div id="diplomaNome" class="file-name"></div>
+      </div>
+      <div class="form-group">
+        <label>Upload da Cédula Profissional <span>*</span></label>
+        <div class="upload-area" id="uploadCedula" onclick="document.getElementById('cedulaInput').click()">
+          📎 Anexar cédula
+        </div>
+        <input type="file" id="cedulaInput" style="display: none;" accept="image/*,application/pdf">
+        <div id="cedulaNome" class="file-name"></div>
+      </div>
+      <div class="form-group">
+        <label>Anos de Experiência</label>
+        <select id="seniorExperiencia">
+          <option value="3-5">3-5 anos</option>
+          <option value="5-10">5-10 anos</option>
+          <option value="10+">10+ anos</option>
+        </select>
+      </div>
+      <button type="button" class="btn-submit" onclick="enviarCadastro('senior')">Verificar na Ordem</button>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL ENGENHEIRO JÚNIOR -->
+<div id="modalJunior" class="modal-overlay">
+  <div class="modal">
+    <span class="fechar-modal" onclick="fecharModal('modalJunior')">&times;</span>
+    <div class="modal-header">
+      <h3>🌱 Cadastro de Talento em Crescimento</h3>
+      <p style="color:#666;">Perfil identificado como Engenheiro Júnior</p>
+    </div>
+    <form id="formJunior">
+      <div class="form-group">
+        <label>Nome Completo <span>*</span></label>
+        <input type="text" id="juniorNome" required>
+      </div>
+      <div class="form-group">
+        <label>E-mail <span>*</span></label>
+        <input type="email" id="juniorEmail" required placeholder="seuemail@exemplo.com">
+      </div>
+      <div class="form-group">
+        <label>Senha <span>*</span></label>
+        <input type="password" id="juniorSenha" required placeholder="Mínimo 6 caracteres">
+      </div>
+      <div class="form-group">
+        <label>Confirmar Senha <span>*</span></label>
+        <input type="password" id="juniorConfirmarSenha" required>
+      </div>
+      <div class="form-group">
+        <label>Número da Ordem dos Engenheiros <span>*</span></label>
+        <input type="text" id="juniorOrdem" required placeholder="OEM-XXXXX">
+      </div>
+      <div class="form-group">
+        <label>Cédula Profissional <span>*</span></label>
+        <input type="text" id="juniorCedulaNumero" required>
+      </div>
+      <div class="form-group">
+        <label>Upload do Diploma <span>*</span></label>
+        <div class="upload-area" id="uploadJuniorDiploma" onclick="document.getElementById('juniorDiplomaInput').click()">
+          📎 Anexar diploma
+        </div>
+        <input type="file" id="juniorDiplomaInput" style="display: none;" accept="image/*,application/pdf">
+        <div id="juniorDiplomaNome" class="file-name"></div>
+      </div>
+      <div class="form-group">
+        <label>Upload da Cédula Profissional <span>*</span></label>
+        <div class="upload-area" id="uploadJuniorCedula" onclick="document.getElementById('juniorCedulaInput').click()">
+          📎 Anexar cédula
+        </div>
+        <input type="file" id="juniorCedulaInput" style="display: none;" accept="image/*,application/pdf">
+        <div id="juniorCedulaNome" class="file-name"></div>
+      </div>
+      <div class="form-group">
+        <label>Área de Especialização</label>
+        <select id="juniorEspecializacao">
+          <option value="Construção Civil">Construção Civil</option>
+          <option value="Estruturas">Estruturas</option>
+          <option value="Hidráulica">Hidráulica</option>
+          <option value="Transportes">Transportes</option>
+          <option value="Geotecnia">Geotecnia</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>LinkedIn / Portfólio (opcional)</label>
+        <input type="url" id="juniorLinkedin" placeholder="https://linkedin.com/in/seu-perfil">
+      </div>
+      <button type="button" class="btn-submit" onclick="enviarCadastro('junior')">Cadastrar como Júnior</button>
+    </form>
+  </div>
+</div>
+
+<div id="toast" class="toast">✅ Cadastro submetido com sucesso! Aguarde verificação.</div>
+
+<script src="js/cadastro.js"></script>
+</body>
+</html>

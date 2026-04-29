@@ -1,359 +1,432 @@
-const express = require("express");
-const path = require("path");
-const cors = require("cors");
-const multer = require("multer");
-const rateLimit = require("express-rate-limit");
-const db = require("./db"); // ✅ ÚNICA conexão com SQLite
+const express = require('express');
+const multer = require('multer');
+const path = require('path');
+const cors = require('cors');
+const fs = require('fs');
+
+const db = require('./db');
 
 const app = express();
-const helmet = require("helmet");
+const PORT = 3000;
 
-app.use(helmet());
-
-
-// ---------------- MIDDLEWARE ---------------- //
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 min
-  max: 500, // 500 requests por IP
+// Rota raiz - redireciona para index.html
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
-app.use(limiter);
-
-app.use(cors({
-  origin: process.env.FRONTEND_URL,
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
-}));
+// Middleware
+app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, "../public")));
+app.use(express.static(path.join(__dirname, '../public')));
 
-app.use((err, req, res, next) => {
-  console.error(err);
+// Criar diretório de uploads se não existir
+const uploadDir = './uploads';
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir);
+}
+app.use('/uploads', express.static(uploadDir));
 
-  res.status(500).json({
-    error: process.env.NODE_ENV === "production"
-      ? "Erro interno do servidor"
-      : err.message
-  });
-});
-
-
-// ---------------- MULTER ---------------- //
+// Configuração do Multer para upload de arquivos
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, "../public/uploads"));
+    cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
-  },
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  }
 });
 
-const upload = multer({ storage });
+const upload = multer({ 
+  storage, 
+  limits: { fileSize: 10 * 1024 * 1024 } // 10MB
+});
 
-// ---------------- ROTAS API ---------------- //
+// Middleware de autenticação
+async function autenticar(req, res, next) {
+  const token = req.headers.authorization?.split(' ')[1];
+  
+  if (!token) {
+    return res.status(401).json({ error: 'Token não fornecido' });
+  }
+  
+  const usuario = await db.verificarToken(token);
+  if (!usuario) {
+    return res.status(401).json({ error: 'Token inválido' });
+  }
+  
+  req.usuario = usuario;
+  next();
+}
 
+// ────────────────────────────────────────────
+// ROTAS DE CADASTRO
+// ────────────────────────────────────────────
 
-
-// Listar todos os projetos com imagens
-app.get("/api/projetos", (req, res) => {
-  const sql = `
-    SELECT 
-      p.id,
-      p.title,
-      p.description,
-      GROUP_CONCAT(pi.imagem) AS imagens
-    FROM projetos p
-    LEFT JOIN projeto_imagens pi ON pi.project_id = p.id
-    GROUP BY p.id
-    ORDER BY p.id DESC
-  `;
-
-  db.all(sql, [], (err, rows) => {
-    if (err) {
-      console.error("Erro ao listar projetos:", err);
-      return res.status(500).json({ error: "Erro no servidor" });
+// Cadastro de Empresa
+app.post('/api/cadastro/empresa', upload.fields([
+  { name: 'alvara', maxCount: 1 },
+  { name: 'nuit_comprovativo', maxCount: 1 }
+]), async (req, res) => {
+  try {
+    const { nome_empresa, email, senha, nuit, responsavel, bi } = req.body;
+    
+    if (!nome_empresa || !email || !senha || !nuit || !responsavel || !bi) {
+      return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
     }
+    
+    const alvara_path = req.files?.alvara?.[0]?.path || '';
+    const nuit_comprovativo_path = req.files?.nuit_comprovativo?.[0]?.path || '';
+    
+    const usuarioId = await db.cadastrarEmpresa({
+      nome_empresa, email, senha, nuit, responsavel, bi,
+      alvara_path, nuit_comprovativo_path
+    });
+    
+    res.json({ success: true, message: 'Empresa cadastrada com sucesso! Aguarde verificação.', id: usuarioId });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message });
+  }
+});
 
-    const projetos = rows.map(p => ({
-      id: p.id,
-      title: p.title,
-      description: p.description,
-      images: p.imagens ? p.imagens.split(",") : [],
-    }));
+// Cadastro de Engenheiro Sénior
+app.post('/api/cadastro/senior', upload.fields([
+  { name: 'diploma', maxCount: 1 }
+]), async (req, res) => {
+  try {
+    const { nome, email, senha, numero_ordem, anos_experiencia, data_validade_ordem } = req.body;
+    
+    if (!nome || !email || !senha || !numero_ordem) {
+      return res.status(400).json({ error: 'Nome, email, senha e número da ordem são obrigatórios' });
+    }
+    
+    const diploma_path = req.files?.diploma?.[0]?.path || '';
+    
+    const usuarioId = await db.cadastrarSenior({
+      nome, email, senha, numero_ordem, diploma_path, anos_experiencia, data_validade_ordem
+    });
+    
+    res.json({ success: true, message: 'Engenheiro Sénior cadastrado! Aguarde verificação.', id: usuarioId });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message });
+  }
+});
 
+// Cadastro de Engenheiro Júnior
+app.post('/api/cadastro/junior', upload.fields([
+  { name: 'diploma', maxCount: 1 }
+]), async (req, res) => {
+  try {
+    const { nome, email, senha, numero_ordem, especializacao, linkedin } = req.body;
+    
+    if (!nome || !email || !senha || !numero_ordem) {
+      return res.status(400).json({ error: 'Nome, email, senha e número da ordem são obrigatórios' });
+    }
+    
+    const diploma_path = req.files?.diploma?.[0]?.path || '';
+    
+    const usuarioId = await db.cadastrarJunior({
+      nome, email, senha, numero_ordem, diploma_path, especializacao, linkedin
+    });
+    
+    res.json({ success: true, message: 'Engenheiro Júnior cadastrado! Perfil será visível na secção Talentos em Crescimento.', id: usuarioId });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ────────────────────────────────────────────
+// ROTAS DE AUTENTICAÇÃO
+// ────────────────────────────────────────────
+
+// Login
+app.post('/api/login', async (req, res) => {
+  const { email, senha } = req.body;
+  
+  if (!email || !senha) {
+    return res.status(400).json({ error: 'Email e senha são obrigatórios' });
+  }
+  
+  const result = await db.login(email, senha);
+  
+  if (!result.success) {
+    return res.status(401).json({ error: result.error });
+  }
+  
+  res.json({
+    success: true,
+    token: result.token,
+    user: result.user
+  });
+});
+
+// Verificar se usuário está cadastrado (para mostrar botão Admin)
+app.post('/api/verificar-cadastro', async (req, res) => {
+  const { email } = req.body;
+  
+  if (!email) {
+    return res.json({ cadastrado: false });
+  }
+  
+  const user = await db.verificarCadastro(email);
+  
+  if (!user) {
+    return res.json({ cadastrado: false });
+  }
+  
+  res.json({
+    cadastrado: true,
+    tipo: user.tipo,
+    status: user.status,
+    id: user.id
+  });
+});
+
+// Verificar token
+app.post('/api/verificar-token', async (req, res) => {
+  const { token } = req.body;
+  
+  if (!token) {
+    return res.json({ valido: false });
+  }
+  
+  const usuario = await db.verificarToken(token);
+  
+  if (!usuario) {
+    return res.json({ valido: false });
+  }
+  
+  res.json({
+    valido: true,
+    usuario
+  });
+});
+
+// Logout
+app.post('/api/logout', async (req, res) => {
+  const { token } = req.body;
+  
+  if (token) {
+    await db.removerSessao(token);
+  }
+  
+  res.json({ success: true });
+});
+
+// ────────────────────────────────────────────
+// ROTAS DE PROJETOS (requer autenticação)
+// ────────────────────────────────────────────
+
+// Listar meus projetos
+app.get('/api/meus-projetos', autenticar, async (req, res) => {
+  try {
+    const projetos = await db.listarProjetosPorUsuario(req.usuario.id);
     res.json(projetos);
-  });
-});
-
-// Adicionar projeto com múltiplas imagens
-app.post("/api/projetos", upload.array("imagens", 10), (req, res) => {
-  const { titulo, descricao } = req.body;
-
-  if (!req.files || req.files.length === 0) {
-    return res.status(400).json({ error: "Nenhuma imagem enviada" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
-
-  db.run(
-    "INSERT INTO projetos (title, description) VALUES (?, ?)",
-    [titulo, descricao],
-    function (err) {
-      if (err) {
-        console.error("Erro ao inserir projeto:", err);
-        return res.status(500).json({ error: "Erro no servidor" });
-      }
-
-      const projetoId = this.lastID;
-
-      const stmt = db.prepare(
-        "INSERT INTO projeto_imagens (project_id, imagem) VALUES (?, ?)"
-      );
-
-      req.files.forEach(file => {
-        stmt.run(projetoId, "/uploads/" + file.filename);
-      });
-
-      stmt.finalize();
-
-      res.json({
-        id: projetoId,
-        title: titulo,
-        description: descricao,
-      });
-    }
-  );
 });
 
-// Listar comentários
-app.get("/api/comments/:projectId", (req, res) => {
-  const { projectId } = req.params;
-
-  db.all(
-    "SELECT * FROM comments WHERE project_id = ? ORDER BY id ASC",
-    [projectId],
-    (err, rows) => {
-      if (err) {
-        console.error("Erro ao listar comentários:", err);
-        return res.status(500).json({ error: "Erro no servidor" });
-      }
-      res.json(rows);
+// Criar projeto
+app.post('/api/projetos', autenticar, upload.array('fotos', 10), async (req, res) => {
+  try {
+    const { titulo, descricao, categoria, local, tags } = req.body;
+    
+    if (!titulo || !descricao) {
+      return res.status(400).json({ error: 'Título e descrição são obrigatórios' });
     }
-  );
-});
-
-// Adicionar comentário
-app.post("/api/comments/:projectId", (req, res) => {
-  const { projectId } = req.params;
-  const { user, text } = req.body;
-
-  db.run(
-    "INSERT INTO comments (project_id, user_name, text) VALUES (?, ?, ?)",
-    [projectId, user, text],
-    function (err) {
-      if (err) {
-        console.error("Erro ao adicionar comentário:", err);
-        return res.status(500).json({ error: "Erro no servidor" });
-      }
-
-      res.json({
-        id: this.lastID,
-        project_id: projectId,
-        user_name: user,
-        text,
-      });
-    }
-  );
-});
-
-
-//API POST para construcoes
-app.post("/api/construcoes", upload.array("imagens", 10), (req, res) => {
-  const { titulo, descricao } = req.body;
-
-  if (!req.files || req.files.length === 0) {
-    return res.status(400).json({ error: "Nenhuma imagem enviada" });
+    
+    const fotosPaths = req.files ? req.files.map(f => f.path) : [];
+    const fotoCapa = fotosPaths[0] || '';
+    
+    const projetoId = await db.criarProjeto({
+      titulo,
+      descricao,
+      categoria: categoria || 'Outros',
+      local: local || '',
+      tags: tags || '',
+      fotos: fotosPaths,
+      foto_capa: fotoCapa,
+      usuario_id: req.usuario.id,
+      engenheiro_nome: req.usuario.nome
+    });
+    
+    res.json({ success: true, id: projetoId });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message });
   }
+});
 
-  db.run(
-    "INSERT INTO construcoes (title, description) VALUES (?, ?)",
-    [titulo, descricao],
-    function (err) {
-      if (err) {
-        console.error("Erro ao inserir construção:", err);
-        return res.status(500).json({ error: "Erro no servidor" });
-      }
-
-      const construcaoId = this.lastID;
-
-      const stmt = db.prepare(
-        "INSERT INTO construcao_imagens (construcao_id, imagem) VALUES (?, ?)"
-      );
-
-      req.files.forEach(file => {
-        stmt.run(construcaoId, "/uploads/" + file.filename);
-      });
-
-      stmt.finalize();
-
-      res.json({
-        id: construcaoId,
-        title: titulo,
-        description: descricao
-      });
+// Atualizar projeto
+app.put('/api/projetos/:id', autenticar, async (req, res) => {
+  try {
+    const { titulo, descricao, categoria, local, tags } = req.body;
+    const projetoId = req.params.id;
+    
+    const projeto = await db.buscarProjetoPorId(projetoId);
+    
+    if (!projeto || projeto.usuario_id !== req.usuario.id) {
+      return res.status(403).json({ error: 'Você não tem permissão para editar este projeto' });
     }
-  );
+    
+    await db.atualizarProjeto(projetoId, { titulo, descricao, categoria, local, tags });
+    
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
-
-//API GET para construcoes
-// LISTAR CONSTRUÇÕES COM IMAGENS
-app.get("/api/construcoes", (req, res) => {
-  const sql = `
-    SELECT 
-      c.id,
-      c.title,
-      c.description,
-      GROUP_CONCAT(ci.imagem) AS imagens
-    FROM construcoes c
-    LEFT JOIN construcao_imagens ci ON ci.construcao_id = c.id
-    GROUP BY c.id
-    ORDER BY c.id DESC
-  `;
-
-  db.all(sql, [], (err, rows) => {
-    if (err) {
-      console.error("Erro ao listar construções:", err);
-      return res.status(500).json({ error: "Erro no servidor" });
+// Excluir projeto
+app.delete('/api/projetos/:id', autenticar, async (req, res) => {
+  try {
+    const projetoId = req.params.id;
+    
+    const projeto = await db.buscarProjetoPorId(projetoId);
+    
+    if (!projeto || projeto.usuario_id !== req.usuario.id) {
+      return res.status(403).json({ error: 'Você não tem permissão para excluir este projeto' });
     }
-
-    const construcoes = rows.map(c => ({
-      id: c.id,
-      title: c.title,
-      description: c.description,
-      images: c.imagens ? c.imagens.split(",") : []
-    }));
-
-    res.json(construcoes);
-  });
+    
+    await db.excluirProjeto(projetoId);
+    
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 
-
-// ---------------- SERVIR FRONTEND ---------------- //
-app.get("/", (req, res) =>
-  res.sendFile(path.join(__dirname, "../public/index.html"))
-);
-
-app.get("/admin.html", (req, res) =>
-  res.sendFile(path.join(__dirname, "../public/admin.html"))
-);
-
-app.get("/detalhes.html", (req, res) =>
-  res.sendFile(path.join(__dirname, "../public/detalhes.html"))
-);
-
-
-
-// ---------------- ROTAS DELETE ---------------- //
-
-
-
-
-
-
-app.delete("/api/projetos/:id", (req, res) => {
-  const { id } = req.params;
-
-  db.serialize(() => {
-    // Apagar imagens do projeto
-    db.run(
-      "DELETE FROM projeto_imagens WHERE project_id = ?",
-      [id],
-      function (err) {
-        if (err) {
-          console.error("Erro ao apagar imagens:", err);
-          return res.status(500).json({ error: "Erro ao apagar imagens" });
-        }
-
-        // Apagar projeto
-        db.run(
-          "DELETE FROM projetos WHERE id = ?",
-          [id],
-          function (err) {
-            if (err) {
-              console.error("Erro ao apagar projeto:", err);
-              return res.status(500).json({ error: "Erro ao apagar projeto" });
-            }
-
-            // 👇 VERIFICA SE REALMENTE APAGOU
-            if (this.changes === 0) {
-              return res.status(404).json({ error: "Projeto não encontrado" });
-            }
-
-            res.json({
-              message: "Projeto apagado definitivamente",
-              deletedId: id,
+// Rota para verificar se é engenheiro/sênior
+app.post('/api/verificar-engenheiro', async (req, res) => {
+    const { email, password } = req.body;
+    
+    console.log(`Verificando engenheiro: ${email}`);
+    
+    if (!email || !password) {
+        return res.status(400).json({ 
+            success: false, 
+            error: 'Email e senha são obrigatórios' 
+        });
+    }
+    
+    try {
+        // Usar o método do db que você já tem (buscarUsuarioPorEmail ou similar)
+        // Como seu db usa async/await, vamos tentar:
+        const user = await db.buscarUsuarioPorEmail?.(email);
+        
+        // Se não tiver esse método, use o db.get de forma async
+        // Ou use a query diretamente
+        
+        if (!user) {
+            console.log(`Usuário não encontrado: ${email}`);
+            return res.status(401).json({ 
+                success: false, 
+                error: '❌ Não estás cadastrado como engenheiro! Faça o registro primeiro.' 
             });
-          }
-        );
-      }
-    );
-  });
-});
-
-
-
-
-// ---------------- DELETE CONSTRUÇÕES ---------------- //
-app.delete("/api/construcoes/:id", (req, res) => {
-  const { id } = req.params;
-
-  db.serialize(() => {
-    db.run(
-      "DELETE FROM construcao_imagens WHERE construcao_id = ?",
-      [id],
-      function (err) {
-        if (err) {
-          console.error("Erro ao apagar imagens da construção:", err);
-          return res.status(500).json({ error: "Erro ao apagar imagens" });
         }
-
-        db.run(
-          "DELETE FROM construcoes WHERE id = ?",
-          [id],
-          function (err) {
-            if (err) {
-              console.error("Erro ao apagar construção:", err);
-              return res.status(500).json({ error: "Erro ao apagar construção" });
-            }
-
-            if (this.changes === 0) {
-              return res.status(404).json({ error: "Construção não encontrada" });
-            }
-
-            res.json({
-              message: "Construção apagada com sucesso",
-              deletedId: id,
+        
+        // Verificar se é sênior/engenheiro
+        if (user.role !== 'senior') {
+            console.log(`Usuário não é engenheiro: ${email} - Role: ${user.role}`);
+            return res.status(403).json({ 
+                success: false, 
+                error: '❌ Não estás cadastrado como engenheiro! Apenas engenheiros podem publicar projetos.' 
             });
-          }
+        }
+        
+        // Verificar senha
+        if (user.password !== password) {
+            console.log(`Senha incorreta para: ${email}`);
+            return res.status(401).json({ 
+                success: false, 
+                error: '❌ Senha incorreta! Tente novamente.' 
+            });
+        }
+        
+        // Login bem-sucedido
+        console.log(`Engenheiro verificado: ${email}`);
+        
+        // Criar token JWT
+        const jwt = require('jsonwebtoken');
+        const token = jwt.sign(
+            { id: user.id, email: user.email, role: user.role, name: user.name },
+            'SECRET_KEY',
+            { expiresIn: '24h' }
         );
-      }
-    );
-  });
+        
+        res.json({
+            success: true,
+            token: token,
+            role: user.role,
+            name: user.name,
+            email: user.email
+        });
+        
+    } catch (error) {
+        console.error('Erro ao verificar engenheiro:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Erro interno do servidor: ' + error.message 
+        });
+    }
 });
 
 
 
+// Listar todos os projetos (público)
+app.get('/api/projetos', async (req, res) => {
+  try {
+    const projetos = await db.listarTodosProjetos();
+    res.json(projetos);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
+// Buscar projeto por ID (público)
+app.get('/api/projetos/:id', async (req, res) => {
+  try {
+    const projeto = await db.buscarProjetoPorId(req.params.id);
+    if (!projeto) {
+      return res.status(404).json({ error: 'Projeto não encontrado' });
+    }
+    res.json(projeto);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
-// SPA fallback
-app.use((req, res) =>
-  res.sendFile(path.join(__dirname, "../public/index.html"))
-);
+// ────────────────────────────────────────────
+// ROTAS ADMIN (para verificar cadastros)
+// ────────────────────────────────────────────
 
+// Listar usuários pendentes
+app.get('/api/admin/usuarios/pendentes', autenticar, async (req, res) => {
+  if (req.usuario.email !== 'admin@obravia.com') {
+    return res.status(403).json({ error: 'Acesso restrito ao administrador' });
+  }
+  
+  const usuarios = await db.listarUsuariosPendentes();
+  res.json(usuarios);
+});
 
-// ---------------- RODAR SERVIDOR ---------------- //
-const PORT = process.env.PORT || 3000;
+// Aprovar usuário
+app.put('/api/admin/usuarios/:id/aprovar', autenticar, async (req, res) => {
+  if (req.usuario.email !== 'admin@obravia.com') {
+    return res.status(403).json({ error: 'Acesso restrito ao administrador' });
+  }
+  
+  await db.aprovarUsuario(req.params.id);
+  res.json({ success: true });
+});
+
+// Iniciar servidor
 app.listen(PORT, () => {
-  console.log(`🔥 Servidor rodando em http://localhost:${PORT}`);
+  console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
+  console.log(`📁 Banco de dados: database.db`);
 });
