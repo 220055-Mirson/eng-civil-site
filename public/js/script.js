@@ -71,7 +71,7 @@ function exibirProjetos() {
       <div class="empty-projetos">
         <h3>📭 Nenhum projeto encontrado</h3>
         <p>${categoriaAtual !== 'todos' ? `Nenhum projeto na categoria "${categoriaAtual}" ainda.` : 'Seja o primeiro a publicar um projeto!'}</p>
-        ${categoriaAtual !== 'todos' ? '<button class="btn-outline" onclick="filtrarProjetos(\'todos\')" style="margin-top: 1rem;">Ver todos</button>' : '<a href="cadastro-verificacao.html" class="btn-primary" style="margin-top: 1rem; display: inline-block;">Criar perfil</a>'}
+        ${categoriaAtual !== 'todos' ? '<button class="btn-outline" onclick="filtrarProjetos(\'todos\')" style="margin-top: 1rem;">Ver todos</button>' : '<a href="cadastro-engenheiro.html" class="btn-primary" style="margin-top: 1rem; display: inline-block;">Criar perfil</a>'}
       </div>
     `;
     return;
