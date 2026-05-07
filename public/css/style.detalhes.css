@@ -20,7 +20,7 @@ body {
 
 /* ── NAVBAR ── */
 .navbar {
-  background: var(--branco);
+  background: var(--cinza-texto);
   border-bottom: 1.5px solid var(--cinza-suave);
   position: sticky;
   top: 0;
@@ -63,6 +63,38 @@ body {
   font-size: 13px !important;
 }
 .btn-sair:hover { background: var(--laranja-escuro) !important; }
+
+.nav-links a:hover { color: var(--laranja); }
+.btn-sobre {
+  background: var(--laranja) !important;
+  color: var(--branco) !important;
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-size: 13px !important;
+}
+.btn-sobre:hover { background: var(--laranja-escuro) !important; }
+
+
+.nav-links a:hover { color: var(--laranja); }
+.btn-construcoes {
+  background: var(--laranja) !important;
+  color: var(--branco) !important;
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-size: 13px !important;
+}
+.btn-construcoes:hover { background: var(--laranja-escuro) !important; }
+
+.nav-links a:hover { color: var(--laranja); }
+.btn-admin {
+  background: var(--laranja) !important;
+  color: var(--branco) !important;
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-size: 13px !important;
+}
+.btn-admin:hover { background: var(--laranja-escuro) !important; }
+
 
 /* ── BOTÃO VOLTAR ── */
 .back-button {

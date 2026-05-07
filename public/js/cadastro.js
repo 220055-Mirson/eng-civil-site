@@ -1,5 +1,7 @@
 // ── CONFIGURAÇÃO DA API ──
-const API_URL = 'http://localhost:3000/api';
+// REMOVA esta linha fixa:
+// const API_URL = 'http://localhost:3000/api';
+// Agora usa a variável global do config.js
 
 // ── CONFIGURAR UPLOAD DE ARQUIVOS ──
 function setupFileUpload(clickId, inputId, displayId) {
@@ -144,9 +146,6 @@ async function enviarCadastro(tipo) {
     formData = criarFormDataJunior();
     mensagem = '🌱 Talento em Crescimento registado! Perfil será visível na secção especial.';
   }
-  
-  // Verificar campos obrigatórios
-  const requiredInputs = formData.getAll('senha') ? [] : [];
   
   try {
     const response = await fetch(endpoint, {

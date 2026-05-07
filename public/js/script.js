@@ -1,5 +1,7 @@
 // ── CONFIGURAÇÃO DA API ──
-const API_URL = 'http://localhost:3000/api';
+// REMOVA esta linha fixa:
+// const API_URL = 'http://localhost:3000/api';
+// Agora usa a variável global API_URL do config.js
 
 // ── VARIÁVEIS GLOBAIS ──
 let todosProjetos = [];
@@ -21,13 +23,15 @@ async function carregarProjetos() {
     }
   } catch (error) {
     console.error('Erro:', error);
-    grid.innerHTML = `
-      <div class="empty-projetos">
-        <h3>⚠️ Erro ao carregar projetos</h3>
-        <p>Não foi possível conectar ao servidor. Verifique se o backend está rodando.</p>
-        <button onclick="location.reload()" style="margin-top: 1rem; padding: 8px 16px; background: var(--laranja); color: white; border: none; border-radius: 8px; cursor: pointer;">Tentar novamente</button>
-      </div>
-    `;
+    if (grid) {
+      grid.innerHTML = `
+        <div class="empty-projetos">
+          <h3>⚠️ Erro ao carregar projetos</h3>
+          <p>Não foi possível conectar ao servidor. Verifique se o backend está rodando.</p>
+          <button onclick="location.reload()" style="margin-top: 1rem; padding: 8px 16px; background: var(--laranja); color: white; border: none; border-radius: 8px; cursor: pointer;">Tentar novamente</button>
+        </div>
+      `;
+    }
   }
 }
 

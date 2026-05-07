@@ -1,5 +1,7 @@
-// URL da API (ajuste conforme seu backend)
-const API_URL = 'http://localhost:3000/api';
+// ── CONFIGURAÇÃO DA API ──
+// REMOVA esta linha fixa:
+// const API_URL = 'http://localhost:3000/api';
+// Agora usa a variável global API_URL do config.js
 
 // ── VARIÁVEIS ──
 let imagensSelecionadas = [];
