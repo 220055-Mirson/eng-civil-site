@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" href="img/LOGO.png" type="image/x-icon">
+  <title>OBRAVIA — Painel do Engenheiro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --laranja: #D85A30;
+      --laranja-escuro: #993C1D;
+      --laranja-claro: #FAECE7;
+      --cinza-claro: #F1EFE8;
+      --cinza-texto: #444441;
+      --cinza-suave: #D3D1C7;
+      --branco: #ffffff;
+      --verde: #3B6D11;
+      --verde-claro: #EAF3DE;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cinza-claro);
+      color: var(--cinza-texto);
+    }
+
+    /* NAVBAR */
+    .navbar {
+      background: var(--cinza-texto);
+      border-bottom: 1.5px solid rgba(255,255,255,0.1);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .nav-container {
+      max-width: 1200px; margin: 0 auto;
+      padding: 0 2rem; height: 72px;
+      display: flex; align-items: center; gap: 1.5rem;
+    }
+    .logo img { height: 50px; object-fit: contain; }
+    .eng-tag {
+      background: rgba(216,90,48,0.2);
+      color: var(--laranja);
+      font-size: 11px; font-weight: 700;
+      padding: 4px 10px; border-radius: 20px;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      border: 1px solid rgba(216,90,48,0.35);
+    }
+    .nav-right {
+      margin-left: auto;
+      display: flex; align-items: center; gap: 1rem;
+    }
+    .eng-name {
+      font-size: 13px; font-weight: 600;
+      color: rgba(255,255,255,0.75);
+    }
+    .btn-nav-link {
+      font-size: 13px; color: rgba(255,255,255,0.7);
+      text-decoration: none; font-weight: 500;
+      padding: 7px 14px; border-radius: 6px;
+      transition: background 0.15s;
+    }
+    .btn-nav-link:hover { background: rgba(255,255,255,0.1); color: white; }
+    .btn-sair {
+      background: var(--laranja); color: white !important;
+      padding: 7px 18px; border-radius: 6px;
+      font-size: 13px; font-weight: 600;
+      text-decoration: none;
+    }
+
+    /* LAYOUT */
+    .page {
+      max-width: 1200px; margin: 0 auto;
+      padding: 2rem 1.5rem;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 1.5rem;
+    }
+    @media (max-width: 860px) {
+      .page { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+    }
+
+    /* SIDEBAR */
+    .sidebar { display: flex; flex-direction: column; gap: 1rem; }
+
+    .profile-card {
+      background: var(--branco);
+      border: 1.5px solid var(--cinza-suave);
+      border-radius: 14px;
+      padding: 1.5rem;
+      text-align: center;
+    }
+    .profile-avatar {
+      width: 70px; height: 70px;
+      border-radius: 50%;
+      background: var(--laranja-claro);
+      color: var(--laranja);
+      font-family: 'Syne', sans-serif;
+      font-size: 1.6rem; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 0.8rem;
+    }
+    .profile-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem; font-weight: 700;
+      margin-bottom: 2px;
+    }
+    .profile-spec {
+      font-size: 12px; color: #999;
+    }
+    .profile-stats {
+      display: grid; grid-template-columns: 1fr 1fr 1fr;
+      gap: 0.5rem; margin-top: 1rem;
+      border-top: 1px solid var(--cinza-claro);
+      padding-top: 1rem;
+    }
+    .stat-box { text-align: center; }
+    .stat-box .num {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.2rem; font-weight: 800;
+      color: var(--laranja);
+      display: block;
+    }
+    .stat-box .lbl { font-size: 10px; color: #aaa; }
+
+    .filter-card {
+      background: var(--branco);
+      border: 1.5px solid var(--cinza-suave);
+      border-radius: 14px;
+      padding: 1.2rem 1.5rem;
+    }
+    .filter-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 12px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      color: #999; margin-bottom: 0.8rem;
+    }
+    .filter-item {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--cinza-claro);
+      cursor: pointer;
+      font-size: 13px; color: var(--cinza-texto);
+      transition: color 0.15s;
+    }
+    .filter-item:last-child { border-bottom: none; }
+    .filter-item:hover { color: var(--laranja); }
+    .filter-item.active { color: var(--laranja); font-weight: 600; }
+    .filter-count {
+      background: var(--cinza-claro);
+      border-radius: 10px;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .filter-item.active .filter-count {
+      background: var(--laranja-claro);
+      color: var(--laranja);
+    }
+
+    /* MAIN */
+    .main-area {}
+    .main-header {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.2rem;
+      flex-wrap: wrap; gap: 0.8rem;
+    }
+    .main-header h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.3rem; font-weight: 800;
+    }
+    .main-header p { font-size: 13px; color: #888; margin-top: 2px; }
+
+    .search-bar {
+      display: flex; align-items: center;
+      gap: 0.5rem;
+      background: var(--branco);
+      border: 1.5px solid var(--cinza-suave);
+      border-radius: 8px;
+      padding: 8px 14px;
+      width: 220px;
+    }
+    .search-bar input {
+      border: none; outline: none;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px; color: var(--cinza-texto);
+      background: transparent; width: 100%;
+    }
+
+    /* PEDIDO CARDS */
+    .pedidos-list { display: flex; flex-direction: column; gap: 1rem; }
+
+    .pedido-card {
+      background: var(--branco);
+      border: 1.5px solid var(--cinza-suave);
+      border-radius: 14px;
+      overflow: hidden;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .pedido-card:hover {
+      border-color: var(--laranja);
+      box-shadow: 0 4px 20px rgba(216,90,48,0.1);
+    }
+    .pedido-card.ja-proposta {
+      opacity: 0.7;
+      border-color: var(--verde);
+    }
+
+    .card-main {
+      padding: 1.3rem 1.5rem;
+    }
+    .card-top {
+      display: flex; align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem; margin-bottom: 0.8rem;
+      flex-wrap: wrap;
+    }
+    .pedido-id {
+      font-family: monospace;
+      font-size: 11px; color: #aaa;
+      margin-bottom: 4px;
+    }
+    .pedido-tipo {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem; font-weight: 700;
+    }
+    .pedido-local {
+      font-size: 12px; color: #888;
+      margin-top: 2px;
+      display: flex; align-items: center; gap: 4px;
+    }
+
+    .badges { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: flex-start; }
+    .badge {
+      font-size: 11px; font-weight: 600;
+      padding: 4px 10px; border-radius: 20px;
+    }
+    .badge-tipo { background: var(--laranja-claro); color: var(--laranja); }
+    .badge-urgencia { background: #FFF3CD; color: #856404; }
+    .badge-urgencia.alta { background: #FFE0D8; color: #D85A30; }
+    .badge-proposta { background: var(--verde-claro); color: var(--verde); }
+
+    .pedido-desc {
+      font-size: 13px; color: #666;
+      line-height: 1.5;
+      margin-bottom: 0.8rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .card-meta {
+      display: flex; gap: 1.2rem;
+      flex-wrap: wrap;
+      font-size: 12px; color: #888;
+    }
+    .meta-item { display: flex; align-items: center; gap: 4px; }
+    .meta-item strong { color: var(--cinza-texto); }
+
+    .card-footer {
+      border-top: 1.5px solid var(--cinza-claro);
+      padding: 0.9rem 1.5rem;
+      display: flex; align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      background: #FAFAF7;
+    }
+    .tempo-pub {
+      font-size: 12px; color: #aaa;
+    }
+    .card-actions { display: flex; gap: 0.6rem; }
+    .btn-ver {
+      background: transparent;
+      border: 1.5px solid var(--cinza-suave);
+      padding: 8px 16px; border-radius: 6px;
+      font-size: 12px; font-weight: 600;
+      color: var(--cinza-texto); cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-ver:hover { border-color: var(--cinza-texto); }
+    .btn-proposta {
+      background: var(--laranja);
+      color: white; border: none;
+      padding: 8px 18px; border-radius: 6px;
+      font-size: 13px; font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s;
+      font-family: 'Syne', sans-serif;
+    }
+    .btn-proposta:hover { background: var(--laranja-escuro); }
+    .btn-proposta-feita {
+      background: var(--verde-claro);
+      color: var(--verde);
+      border: 1.5px solid var(--verde);
+      padding: 8px 18px; border-radius: 6px;
+      font-size: 12px; font-weight: 600;
+      cursor: default;
+    }
+
+    /* MODAL PROPOSTA */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45); z-index: 999;
+      align-items: center; justify-content: center;
+      backdrop-filter: blur(2px);
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-box {
+      background: white; border-radius: 16px;
+      padding: 2rem; max-width: 520px; width: 94%;
+      animation: slideUp 0.3s ease;
+      max-height: 90vh; overflow-y: auto;
+    }
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .modal-header {
+      display: flex; justify-content: space-between;
+      align-items: flex-start; margin-bottom: 1.2rem;
+    }
+    .modal-header h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.1rem; font-weight: 800;
+    }
+    .btn-close {
+      background: none; border: none;
+      font-size: 1.4rem; cursor: pointer;
+      color: #aaa; padding: 0;
+    }
+    .modal-pedido-info {
+      background: var(--cinza-claro);
+      border-radius: 10px; padding: 1rem 1.2rem;
+      margin-bottom: 1.2rem;
+    }
+    .modal-pedido-info p { font-size: 13px; color: #666; line-height: 1.5; }
+    .modal-pedido-info strong { color: var(--cinza-texto); }
+
+    .modal-form .form-group { margin-bottom: 1rem; }
+    .modal-form label {
+      display: block; font-size: 13px; font-weight: 600;
+      margin-bottom: 5px;
+    }
+    .modal-form input,
+    .modal-form textarea,
+    .modal-form select {
+      width: 100%; padding: 10px 13px;
+      border: 1.5px solid var(--cinza-suave); border-radius: 8px;
+      font-family: 'DM Sans', sans-serif; font-size: 13px;
+      outline: none; transition: border-color 0.2s;
+    }
+    .modal-form input:focus,
+    .modal-form textarea:focus { border-color: var(--laranja); }
+    .modal-form textarea { min-height: 100px; resize: vertical; }
+    .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+    .btn-enviar-prop {
+      width: 100%; padding: 13px;
+      background: var(--laranja); color: white;
+      border: none; border-radius: 8px;
+      font-family: 'Syne', sans-serif;
+      font-size: 14px; font-weight: 700;
+      cursor: pointer; margin-top: 0.5rem;
+      transition: background 0.15s;
+    }
+    .btn-enviar-prop:hover { background: var(--laranja-escuro); }
+
+    /* EMPTY STATE */
+    .empty-state {
+      text-align: center; padding: 4rem 2rem;
+      background: var(--branco);
+      border: 1.5px solid var(--cinza-suave);
+      border-radius: 14px;
+    }
+    .empty-state .icon { font-size: 2.5rem; margin-bottom: 1rem; }
+    .empty-state h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem; margin-bottom: 0.5rem;
+    }
+    .empty-state p { font-size: 13px; color: #999; }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="logo">
+        <img src="img/OBRAVIA.jpeg" alt="OBRAVIA" onerror="this.src='https://placehold.co/160x46/D85A30/FFFFFF?text=OBRAVIA'">
+      </div>
+      <span class="eng-tag">Engenheiro</span>
+      <div class="nav-right">
+        <span class="eng-name" id="nomeEng">–</span>
+        <a href="publicar-projeto.html" class="btn-nav-link">Meus Projectos</a>
+        <a href="#" class="btn-sair" onclick="logout()">Sair</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="page">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+      <!-- Perfil -->
+      <div class="profile-card">
+        <div class="profile-avatar" id="avatarInitials">E</div>
+        <div class="profile-name" id="profileName">Engenheiro</div>
+        <div class="profile-spec">Engenharia Civil</div>
+        <div class="profile-stats">
+          <div class="stat-box"><span class="num" id="statEnviadas">0</span><span class="lbl">Propostas</span></div>
+          <div class="stat-box"><span class="num" id="statAceites">0</span><span class="lbl">Aceites</span></div>
+          <div class="stat-box"><span class="num" id="statPedidos">0</span><span class="lbl">Pedidos</span></div>
+        </div>
+      </div>
+
+      <!-- Filtros -->
+      <div class="filter-card">
+        <div class="filter-title">Filtrar por tipo</div>
+        <div class="filter-item active" onclick="filtrar('todos', this)">
+          <span>🏗️ Todos</span>
+          <span class="filter-count" id="cnt-todos">0</span>
+        </div>
+        <div class="filter-item" onclick="filtrar('Residencial', this)">
+          <span>🏠 Residencial</span>
+          <span class="filter-count" id="cnt-Residencial">0</span>
+        </div>
+        <div class="filter-item" onclick="filtrar('Comercial', this)">
+          <span>🏢 Comercial</span>
+          <span class="filter-count" id="cnt-Comercial">0</span>
+        </div>
+        <div class="filter-item" onclick="filtrar('Industrial', this)">
+          <span>🏭 Industrial</span>
+          <span class="filter-count" id="cnt-Industrial">0</span>
+        </div>
+        <div class="filter-item" onclick="filtrar('Infra-estrutura', this)">
+          <span>🌉 Infra</span>
+          <span class="filter-count" id="cnt-Infra-estrutura">0</span>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main-area">
+      <div class="main-header">
+        <div>
+          <h1>📋 Pedidos de Clientes</h1>
+          <p>Veja os pedidos publicados e envie a sua proposta</p>
+        </div>
+        <div class="search-bar">
+          <span>🔍</span>
+          <input type="text" placeholder="Pesquisar..." oninput="pesquisar(this.value)" id="searchInput">
+        </div>
+      </div>
+
+      <div class="pedidos-list" id="pedidosList">
+        <!-- Carregado via JS -->
+        <div class="empty-state">
+          <div class="icon">⏳</div>
+          <h3>A carregar pedidos...</h3>
+          <p>Aguarde um momento.</p>
+        </div>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- MODAL PROPOSTA -->
+  <div class="modal-overlay" id="modalProposta">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2>✏️ Enviar Proposta</h2>
+        <button class="btn-close" onclick="fecharModal()">✕</button>
+      </div>
+
+      <div class="modal-pedido-info" id="modalPedidoInfo">
+        <!-- Info do pedido -->
+      </div>
+
+      <div class="modal-form">
+        <div class="form-row-2">
+          <div class="form-group">
+            <label>Valor Proposto (MZN) *</label>
+            <input type="number" id="propValor" placeholder="Ex: 1500000" min="0">
+          </div>
+          <div class="form-group">
+            <label>Prazo de Execução *</label>
+            <input type="text" id="propPrazo" placeholder="Ex: 6 meses">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Descrição da Proposta *</label>
+          <textarea id="propDescricao" placeholder="Descreva a sua abordagem, metodologia e o que está incluído na proposta..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Disponibilidade para início</label>
+          <input type="text" id="propDisponibilidade" placeholder="Ex: Imediata, Próxima semana...">
+        </div>
+
+        <button class="btn-enviar-prop" onclick="enviarProposta()">Enviar Proposta</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script>
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    let pedidosData = [];
+    let filtroAtivo = 'todos';
+    let pedidoSelecionadoId = null;
+
+    // Propostas já enviadas (local storage para demo)
+    const propostasEnviadas = JSON.parse(localStorage.getItem('propostasEnviadas') || '[]');
+
+    function logout() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = 'index.html';
+    }
+
+    // Inicializar UI
+    if (user.nome) {
+      const nome = user.nome || 'Engenheiro';
+      document.getElementById('nomeEng').textContent = nome;
+      document.getElementById('profileName').textContent = nome;
+      document.getElementById('avatarInitials').textContent = nome.charAt(0).toUpperCase();
+    }
+
+    // Dados de demo
+    const pedidosDemo = [
+      { id: 'PED-234851', tipo: 'Residencial', local: 'Maputo, Sommerschield', descricao: 'Quero construir uma moradia T4 com 3 wc, sala de estar e cozinha americana. O terreno é plano com 18x25m. Preciso de projecto completo incluindo estrutura e instalações.', talhao: '450', orcamento_min: '2000000', orcamento_max: '4000000', urgencia: '3 meses', nome_cliente: 'A. Machava', criado_em: '2026-05-19T08:30:00' },
+      { id: 'PED-198732', tipo: 'Comercial', local: 'Matola, Ngolote', descricao: 'Preciso de projecto para armazém comercial de 500m2 com área de escritório. Uso industrial ligeiro. Terreno já preparado.', talhao: '800', orcamento_min: null, orcamento_max: '6000000', urgencia: '1 mês', nome_cliente: 'J. Nhantumbo', criado_em: '2026-05-18T14:00:00' },
+      { id: 'PED-301244', tipo: 'Residencial', local: 'Beira, Ponta-Gêa', descricao: 'Remodelação completa de moradia T3 existente. Ampliar cozinha, adicionar suite, renovar wc. Estrutura original em bom estado.', talhao: '200', orcamento_min: '500000', orcamento_max: '1200000', urgencia: 'Muito urgente', nome_cliente: 'C. Mussagy', criado_em: '2026-05-20T09:15:00' },
+      { id: 'PED-445613', tipo: 'Infra-estrutura', local: 'Nampula, Centro', descricao: 'Projecto de urbanização de loteamento com 30 lotes. Necessário projectar arruamentos, rede de água, esgotos e electricidade.', talhao: '12000', orcamento_min: '5000000', orcamento_max: null, urgencia: '6 meses', nome_cliente: 'G. Pereira', criado_em: '2026-05-17T11:00:00' },
+      { id: 'PED-567821', tipo: 'Educação', local: 'Maputo, KaMpfumo', descricao: 'Escola primária privada com 12 salas de aula, biblioteca, sala de informática e refeitório. Capacidade para 400 alunos.', talhao: '2000', orcamento_min: '8000000', orcamento_max: '15000000', urgencia: '6 meses', nome_cliente: 'F. Sitoe', criado_em: '2026-05-16T16:30:00' },
+    ];
+
+    async function carregarPedidos() {
+      try {
+        const BASE = window.API_BASE || 'http://localhost:3000';
+        const res = await fetch(`${BASE}/api/pedidos`, {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+        if (res.ok) {
+          pedidosData = await res.json();
+        } else { throw new Error(); }
+      } catch {
+        pedidosData = pedidosDemo;
+      }
+      document.getElementById('statPedidos').textContent = pedidosData.length;
+      document.getElementById('statEnviadas').textContent = propostasEnviadas.length;
+      atualizarContadores();
+      renderPedidos();
+    }
+
+    function atualizarContadores() {
+      const tipos = ['Residencial', 'Comercial', 'Industrial', 'Infra-estrutura'];
+      document.getElementById('cnt-todos').textContent = pedidosData.length;
+      tipos.forEach(t => {
+        const el = document.getElementById(`cnt-${t}`);
+        if (el) el.textContent = pedidosData.filter(p => p.tipo === t).length;
+      });
+    }
+
+    function filtrar(tipo, el) {
+      filtroAtivo = tipo;
+      document.querySelectorAll('.filter-item').forEach(i => i.classList.remove('active'));
+      el.classList.add('active');
+      renderPedidos();
+    }
+
+    function pesquisar(q) {
+      renderPedidos(q);
+    }
+
+    function renderPedidos(query = '') {
+      const lista = document.getElementById('pedidosList');
+      let dados = filtroAtivo === 'todos' ? pedidosData : pedidosData.filter(p => p.tipo === filtroAtivo);
+      if (query) {
+        const q = query.toLowerCase();
+        dados = dados.filter(p => p.descricao?.toLowerCase().includes(q) || p.local?.toLowerCase().includes(q) || p.tipo?.toLowerCase().includes(q));
+      }
+
+      if (!dados.length) {
+        lista.innerHTML = `<div class="empty-state"><div class="icon">🔍</div><h3>Sem pedidos</h3><p>Não há pedidos para este filtro.</p></div>`;
+        return;
+      }
+
+      lista.innerHTML = dados.map(p => renderCard(p)).join('');
+    }
+
+    function renderCard(p) {
+      const jaEnviou = propostasEnviadas.includes(p.id);
+      const urgClass = p.urgencia === 'Muito urgente' ? 'alta' : '';
+      const orcamento = p.orcamento_min || p.orcamento_max
+        ? `${p.orcamento_min ? fmtMZN(p.orcamento_min) : '?'} – ${p.orcamento_max ? fmtMZN(p.orcamento_max) : 'Sem limite'}`
+        : 'Orçamento em aberto';
+      const tempo = tempoRelativo(p.criado_em);
+
+      return `
+        <div class="pedido-card ${jaEnviou ? 'ja-proposta' : ''}">
+          <div class="card-main">
+            <div class="card-top">
+              <div>
+                <div class="pedido-id">${p.id}</div>
+                <div class="pedido-tipo">${p.tipo}</div>
+                <div class="pedido-local">📍 ${p.local}</div>
+              </div>
+              <div class="badges">
+                <span class="badge badge-tipo">${p.tipo}</span>
+                <span class="badge badge-urgencia ${urgClass}">⏱ ${p.urgencia}</span>
+                ${jaEnviou ? '<span class="badge badge-proposta">✓ Proposta enviada</span>' : ''}
+              </div>
+            </div>
+            <p class="pedido-desc">${p.descricao}</p>
+            <div class="card-meta">
+              ${p.talhao ? `<span class="meta-item">🏗️ <strong>${p.talhao} m²</strong></span>` : ''}
+              <span class="meta-item">💰 <strong>${orcamento}</strong></span>
+              <span class="meta-item">👤 ${p.nome_cliente}</span>
+            </div>
+          </div>
+          <div class="card-footer">
+            <span class="tempo-pub">${tempo}</span>
+            <div class="card-actions">
+              <button class="btn-ver" onclick="verDetalhes('${p.id}')">Ver detalhes</button>
+              ${jaEnviou
+                ? `<span class="btn-proposta-feita">✓ Proposta Enviada</span>`
+                : `<button class="btn-proposta" onclick="abrirProposta('${p.id}')">Enviar Proposta</button>`
+              }
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function abrirProposta(id) {
+      pedidoSelecionadoId = id;
+      const p = pedidosData.find(x => x.id === id);
+      if (!p) return;
+      document.getElementById('modalPedidoInfo').innerHTML = `
+        <p><strong>${p.tipo}</strong> · ${p.local}</p>
+        <p style="margin-top:6px;">${p.descricao.substring(0, 200)}${p.descricao.length > 200 ? '...' : ''}</p>
+        ${p.orcamento_min || p.orcamento_max ? `<p style="margin-top:6px;font-size:12px;color:#888;">Orçamento: ${p.orcamento_min ? fmtMZN(p.orcamento_min) : '?'} – ${p.orcamento_max ? fmtMZN(p.orcamento_max) : 'Sem limite'}</p>` : ''}
+      `;
+      document.getElementById('propValor').value = '';
+      document.getElementById('propPrazo').value = '';
+      document.getElementById('propDescricao').value = '';
+      document.getElementById('propDisponibilidade').value = '';
+      document.getElementById('modalProposta').classList.add('active');
+    }
+
+    function fecharModal() {
+      document.getElementById('modalProposta').classList.remove('active');
+    }
+
+    async function enviarProposta() {
+      const valor = document.getElementById('propValor').value;
+      const prazo = document.getElementById('propPrazo').value.trim();
+      const descricao = document.getElementById('propDescricao').value.trim();
+      if (!valor || !prazo || !descricao) { alert('Preencha todos os campos obrigatórios.'); return; }
+
+      const proposta = {
+        pedido_id: pedidoSelecionadoId,
+        engenheiro_id: user.id,
+        engenheiro_nome: user.nome,
+        valor, prazo, descricao,
+        disponibilidade: document.getElementById('propDisponibilidade').value,
+        status: 'pendente',
+        enviada_em: new Date().toISOString()
+      };
+
+      try {
+        const BASE = window.API_BASE || 'http://localhost:3000';
+        await fetch(`${BASE}/api/propostas`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...(token && { 'Authorization': `Bearer ${token}` }) },
+          body: JSON.stringify(proposta)
+        });
+      } catch { /* demo */ }
+
+      propostasEnviadas.push(pedidoSelecionadoId);
+      localStorage.setItem('propostasEnviadas', JSON.stringify(propostasEnviadas));
+      document.getElementById('statEnviadas').textContent = propostasEnviadas.length;
+
+      fecharModal();
+      renderPedidos(document.getElementById('searchInput').value);
+      alert('✅ Proposta enviada! O cliente irá receber notificação.');
+    }
+
+    function verDetalhes(id) {
+      const p = pedidosData.find(x => x.id === id);
+      if (!p) return;
+      alert(`Detalhes do Pedido ${p.id}\n\nTipo: ${p.tipo}\nLocal: ${p.local}\nTalhão: ${p.talhao || 'N/D'} m²\nUrgência: ${p.urgencia}\n\nDescrição:\n${p.descricao}`);
+    }
+
+    function fmtMZN(v) { return `${parseInt(v).toLocaleString('pt-MZ')} MZN`; }
+
+    function tempoRelativo(iso) {
+      const d = new Date(iso);
+      const diff = (Date.now() - d) / 1000;
+      if (diff < 3600) return `Há ${Math.floor(diff/60)} min`;
+      if (diff < 86400) return `Há ${Math.floor(diff/3600)} h`;
+      return `Há ${Math.floor(diff/86400)} dias`;
+    }
+
+    carregarPedidos();
+  </script>
+</body>
+</html>

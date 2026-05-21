@@ -123,48 +123,52 @@ function verDetalhes(projetoId) {
 }
 
 // ── CARREGAR PEDIDOS (dados estáticos para demonstração) ──
-function carregarPedidos() {
+async function carregarPedidos() {
   const pedidosGrid = document.getElementById('pedidosGrid');
   if (!pedidosGrid) return;
-  
-  const pedidos = [
-    {
-      tipo: "Projecto novo",
-      titulo: "Moradia T3 em Maputo",
-      cliente: "Carlos Nhantumbo",
-      data: "hoje",
-      descricao: "Preciso de engenheiro para projecto de moradia T3, terreno 400m² em Zimpeto.",
-      sugestao: "Eng. Nédio Ugembe — Maputo, 3 projectos residenciais concluídos."
-    },
-    {
-      tipo: "Fiscalização",
-      titulo: "Fiscalização de obra em Matola",
-      cliente: "Empresa BuildMoz",
-      data: "ontem",
-      descricao: "Obra comercial em curso, precisamos de fiscal residente para 6 meses.",
-      sugestao: "Eng. Ana Machava — Matola, disponível para fiscalização."
-    },
-    {
-      tipo: "Consulta técnica",
-      titulo: "Avaliação estrutural — Beira",
-      cliente: "Fátima Salomão",
-      data: "há 2 dias",
-      descricao: "Edifício antigo precisa de avaliação estrutural urgente após fissuras detectadas.",
-      sugestao: "Eng. João Pereira — Beira, especialista em estruturas."
+
+  pedidosGrid.innerHTML = '<p style="color:#aaa;font-size:13px;padding:1rem">A carregar pedidos...</p>';
+
+  try {
+    const res = await fetch(`${API_URL}/pedidos`);
+    if (!res.ok) throw new Error('Erro na API');
+    const pedidos = await res.json();
+
+    if (!pedidos.length) {
+      pedidosGrid.innerHTML = '<p style="color:#aaa;font-size:13px;padding:1rem">Ainda não há pedidos publicados.</p>';
+      return;
     }
-  ];
-  
-  pedidosGrid.innerHTML = pedidos.map(pedido => `
-    <div class="pedido-card">
-      <span class="pedido-tipo">${pedido.tipo}</span>
-      <h4>${pedido.titulo}</h4>
-      <p class="pedido-meta">Cliente: ${pedido.cliente} · Publicado ${pedido.data}</p>
-      <p style="font-size:13px; color:#5F5E5A;">${pedido.descricao}</p>
-      <div class="pedido-sugestao">
-        <strong>Sugestão OBRAVIA:</strong> ${pedido.sugestao}
-      </div>
-    </div>
-  `).join('');
+
+    pedidosGrid.innerHTML = pedidos.map(p => {
+      const data = tempoRelativo(p.criado_em);
+      const descCurta = p.descricao.length > 140 ? p.descricao.substring(0, 140) + '...' : p.descricao;
+      const orc = p.orcamento_min || p.orcamento_max
+        ? `Orçamento: ${p.orcamento_min ? Number(p.orcamento_min).toLocaleString('pt-MZ') + ' MZN' : '?'} – ${p.orcamento_max ? Number(p.orcamento_max).toLocaleString('pt-MZ') + ' MZN' : 'Sem limite'}`
+        : '';
+      return `
+        <div class="pedido-card">
+          <span class="pedido-tipo">${p.tipo}</span>
+          <h4>${p.tipo} · ${p.local}</h4>
+          <p class="pedido-meta">Cliente: ${p.nome_cliente} · Publicado ${data}</p>
+          <p style="font-size:13px; color:#5F5E5A;">${descCurta}</p>
+          <div class="pedido-sugestao">
+            <strong>Urgência:</strong> ${p.urgencia || 'Não definida'}${orc ? ' &nbsp;·&nbsp; ' + orc : ''}
+          </div>
+        </div>`;
+    }).join('');
+
+  } catch (err) {
+    pedidosGrid.innerHTML = '<p style="color:#aaa;font-size:13px;padding:1rem">Não foi possível carregar os pedidos.</p>';
+  }
+}
+
+function tempoRelativo(iso) {
+  if (!iso) return '–';
+  const diff = (Date.now() - new Date(iso)) / 1000;
+  if (diff < 3600)  return `há ${Math.floor(diff / 60)} min`;
+  if (diff < 86400) return `há ${Math.floor(diff / 3600)} h`;
+  if (diff < 172800) return 'ontem';
+  return `há ${Math.floor(diff / 86400)} dias`;
 }
 
 // ── AUTH E WELCOME ──
@@ -232,10 +236,6 @@ function abrirModalContacto(engenheiro) {
   document.getElementById("modalContacto").classList.add("aberto");
 }
 
-function abrirModalPedido() {
-  document.getElementById("modalPedido").classList.add("aberto");
-}
-
 function fecharModal(id) {
   const modal = document.getElementById(id);
   if (modal) {
@@ -256,17 +256,6 @@ function enviarPedido() {
   document.getElementById("clienteTel").value = '';
 }
 
-function enviarPedidoServico() {
-  const nome = document.getElementById("pedidoNome")?.value.trim();
-  if (!nome) {
-    mostrarToast("Por favor informe o seu nome.");
-    return;
-  }
-  fecharModal("modalPedido");
-  mostrarToast("Pedido publicado! A OBRAVIA vai sugerir engenheiros próximos.");
-  document.getElementById("pedidoNome").value = '';
-  document.getElementById("pedidoLocal").value = '';
-}
 
 function mostrarToast(msg) {
   const toast = document.getElementById("toast");

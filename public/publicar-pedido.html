@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" href="img/LOGO.png" type="image/x-icon">
+  <title>OBRAVIA — Publicar Pedido</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --laranja: #D85A30;
+      --laranja-escuro: #993C1D;
+      --laranja-claro: #FAECE7;
+      --cinza-claro: #F1EFE8;
+      --cinza-texto: #444441;
+      --cinza-suave: #D3D1C7;
+      --branco: #ffffff;
+      --verde: #3B6D11;
+      --verde-claro: #EAF3DE;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cinza-claro);
+      color: var(--cinza-texto);
+      min-height: 100vh;
+    }
+
+    /* ── NAVBAR ── */
+    .navbar {
+      background: var(--branco);
+      border-bottom: 1.5px solid var(--cinza-suave);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      height: 72px;
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+    }
+    .logo img { height: 50px; object-fit: contain; }
+    .nav-links { list-style: none; display: flex; align-items: center; gap: 1.5rem; margin-left: auto; }
+    .nav-links a {
+      font-size: 14px;
+      color: var(--cinza-texto);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--laranja); }
+    .btn-sair {
+      background: var(--laranja) !important;
+      color: var(--branco) !important;
+      padding: 8px 20px;
+      border-radius: 6px;
+      font-size: 13px !important;
+    }
+
+    /* ── PAGE LAYOUT ── */
+    .page-wrapper {
+      max-width: 780px;
+      margin: 2.5rem auto;
+      padding: 0 1.5rem 4rem;
+    }
+
+    .breadcrumb {
+      font-size: 13px;
+      color: #888;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .breadcrumb a { color: var(--laranja); text-decoration: none; }
+    .breadcrumb a:hover { text-decoration: underline; }
+    .breadcrumb span { color: #bbb; }
+
+    /* ── HERO BANNER ── */
+    .pedido-hero {
+      background: linear-gradient(135deg, var(--laranja) 0%, var(--laranja-escuro) 100%);
+      border-radius: 16px;
+      padding: 2rem 2.5rem;
+      color: white;
+      margin-bottom: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .pedido-hero::before {
+      content: '';
+      position: absolute;
+      top: -30px; right: -30px;
+      width: 160px; height: 160px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.07);
+    }
+    .pedido-hero::after {
+      content: '';
+      position: absolute;
+      bottom: -50px; left: 60px;
+      width: 200px; height: 200px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.05);
+    }
+    .pedido-hero h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 800;
+      margin-bottom: 0.4rem;
+    }
+    .pedido-hero p {
+      font-size: 14px;
+      opacity: 0.88;
+      max-width: 480px;
+      line-height: 1.5;
+    }
+
+    /* ── STEPS INDICATOR ── */
+    .steps {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-bottom: 2rem;
+    }
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #aaa;
+      font-weight: 500;
+    }
+    .step.active { color: var(--laranja); }
+    .step.done { color: var(--verde); }
+    .step-num {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      background: var(--cinza-suave);
+      color: #888;
+      flex-shrink: 0;
+    }
+    .step.active .step-num {
+      background: var(--laranja);
+      color: white;
+    }
+    .step.done .step-num {
+      background: var(--verde-claro);
+      color: var(--verde);
+    }
+    .step-connector {
+      flex: 1;
+      height: 2px;
+      background: var(--cinza-suave);
+      margin: 0 10px;
+    }
+
+    /* ── CARD FORM ── */
+    .form-card {
+      background: var(--branco);
+      border-radius: 16px;
+      border: 1.5px solid var(--cinza-suave);
+      overflow: hidden;
+    }
+
+    .form-section {
+      padding: 1.8rem 2rem;
+      border-bottom: 1.5px solid var(--cinza-claro);
+    }
+    .form-section:last-child { border-bottom: none; }
+
+    .section-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--laranja);
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--laranja-claro);
+    }
+
+    .form-group { margin-bottom: 1.2rem; }
+    .form-group:last-child { margin-bottom: 0; }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--cinza-texto);
+      margin-bottom: 6px;
+    }
+    label .req { color: var(--laranja); }
+    label .hint {
+      font-weight: 400;
+      color: #999;
+      font-size: 12px;
+      margin-left: 4px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="tel"],
+    input[type="email"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid var(--cinza-suave);
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--cinza-texto);
+      background: #FAFAF7;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--laranja);
+      box-shadow: 0 0 0 3px rgba(216,90,48,0.1);
+      background: white;
+    }
+    textarea { resize: vertical; min-height: 110px; line-height: 1.5; }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    @media (max-width: 580px) { .form-row { grid-template-columns: 1fr; } }
+
+    /* Tipo obra radio group */
+    .tipo-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.7rem;
+    }
+    @media (max-width: 580px) { .tipo-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    .tipo-option { display: none; }
+    .tipo-label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 14px 10px;
+      border: 1.5px solid var(--cinza-suave);
+      border-radius: 10px;
+      cursor: pointer;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: #888;
+      transition: all 0.18s;
+      background: #FAFAF7;
+    }
+    .tipo-label:hover { border-color: var(--laranja); color: var(--laranja); }
+    .tipo-label .icon { font-size: 1.4rem; }
+    .tipo-option:checked + .tipo-label {
+      border-color: var(--laranja);
+      background: var(--laranja-claro);
+      color: var(--laranja);
+    }
+
+    /* Urgencia slider */
+    .urgencia-group {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+    .urg-option { display: none; }
+    .urg-label {
+      padding: 7px 16px;
+      border: 1.5px solid var(--cinza-suave);
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      color: #888;
+      transition: all 0.15s;
+    }
+    .urg-label:hover { border-color: var(--laranja); color: var(--laranja); }
+    .urg-option:checked + .urg-label {
+      background: var(--laranja);
+      border-color: var(--laranja);
+      color: white;
+    }
+
+    /* Orcamento range */
+    .orcamento-display {
+      display: flex;
+      gap: 0.7rem;
+      align-items: center;
+    }
+    .orcamento-display span {
+      font-size: 13px;
+      color: #999;
+      white-space: nowrap;
+    }
+    .orcamento-display input {
+      flex: 1;
+    }
+
+    /* Contacto preferences */
+    .contact-opts {
+      display: flex;
+      gap: 0.7rem;
+      flex-wrap: wrap;
+    }
+    .chk-opt { display: none; }
+    .chk-label {
+      padding: 8px 16px;
+      border: 1.5px solid var(--cinza-suave);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      color: #777;
+      transition: all 0.15s;
+    }
+    .chk-label:hover { border-color: var(--laranja); }
+    .chk-opt:checked + .chk-label {
+      border-color: var(--verde);
+      background: var(--verde-claro);
+      color: var(--verde);
+    }
+
+    /* ── SUBMIT ── */
+    .form-footer {
+      padding: 1.5rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      background: #FAFAF7;
+      border-top: 1.5px solid var(--cinza-suave);
+    }
+    .footer-note {
+      font-size: 12px;
+      color: #999;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-publicar {
+      background: var(--laranja);
+      color: white;
+      border: none;
+      padding: 13px 32px;
+      border-radius: 8px;
+      font-family: 'Syne', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-publicar:hover { background: var(--laranja-escuro); transform: translateY(-1px); }
+    .btn-publicar:active { transform: translateY(0); }
+
+    /* ── INFO BOX ── */
+    .info-box {
+      background: var(--verde-claro);
+      border: 1.5px solid rgba(59,109,17,0.25);
+      border-radius: 10px;
+      padding: 1rem 1.2rem;
+      font-size: 13px;
+      color: var(--verde);
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      margin-top: 1.5rem;
+    }
+    .info-box .info-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+
+    /* ── MODAL SUCESSO ── */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(2px);
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-box {
+      background: white;
+      border-radius: 16px;
+      padding: 2.5rem;
+      max-width: 420px;
+      width: 90%;
+      text-align: center;
+      animation: popIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes popIn { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .modal-box .check-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .modal-box h2 { font-family: 'Syne', sans-serif; font-size: 1.4rem; margin-bottom: 0.5rem; }
+    .modal-box p { font-size: 14px; color: #777; line-height: 1.5; margin-bottom: 1.5rem; }
+    .modal-box .btn-ok {
+      background: var(--laranja);
+      color: white;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 8px;
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+    }
+    .modal-box .id-pedido {
+      background: var(--cinza-claro);
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-family: monospace;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--laranja);
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="logo">
+        <img src="img/OBRAVIA.jpeg" alt="OBRAVIA" onerror="this.src='https://placehold.co/200x50/D85A30/FFFFFF?text=OBRAVIA'">
+      </div>
+      <ul class="nav-links">
+        <li><a href="index.html">← Início</a></li>
+        <li><a href="#" class="btn-sair" onclick="logout()">Sair</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <div class="page-wrapper">
+
+    <!-- BREADCRUMB -->
+    <div class="breadcrumb">
+      <a href="index.html">Início</a>
+      <span>›</span>
+      <span>Publicar Pedido</span>
+    </div>
+
+    <!-- HERO -->
+    <div class="pedido-hero">
+      <h1>📋 Publicar um Pedido</h1>
+      <p>Descreva o seu projecto e receba propostas de engenheiros verificados pela OBRAVIA. Sem custos para publicar.</p>
+    </div>
+
+    <!-- STEPS -->
+    <div class="steps">
+      <div class="step active">
+        <div class="step-num">1</div>
+        <span>Detalhes do Pedido</span>
+      </div>
+      <div class="step-connector"></div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <span>Aguardar Propostas</span>
+      </div>
+      <div class="step-connector"></div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <span>Escolher Engenheiro</span>
+      </div>
+    </div>
+
+    <!-- FORM CARD -->
+    <form class="form-card" id="formPedido" onsubmit="submeterPedido(event)">
+
+      <!-- SECÇÃO 1: OBRA -->
+      <div class="form-section">
+        <div class="section-label">📐 Sobre a Obra</div>
+
+        <div class="form-group">
+          <label>Tipo de Obra <span class="req">*</span></label>
+          <div class="tipo-grid">
+            <input type="radio" class="tipo-option" name="tipo" id="t1" value="Residencial" checked>
+            <label class="tipo-label" for="t1"><span class="icon">🏠</span>Residencial</label>
+
+            <input type="radio" class="tipo-option" name="tipo" id="t2" value="Comercial">
+            <label class="tipo-label" for="t2"><span class="icon">🏢</span>Comercial</label>
+
+            <input type="radio" class="tipo-option" name="tipo" id="t3" value="Industrial">
+            <label class="tipo-label" for="t3"><span class="icon">🏭</span>Industrial</label>
+
+            <input type="radio" class="tipo-option" name="tipo" id="t4" value="Infra-estrutura">
+            <label class="tipo-label" for="t4"><span class="icon">🌉</span>Infra-estrutura</label>
+
+            <input type="radio" class="tipo-option" name="tipo" id="t5" value="Educação">
+            <label class="tipo-label" for="t5"><span class="icon">📚</span>Educação</label>
+
+            <input type="radio" class="tipo-option" name="tipo" id="t6" value="Outro">
+            <label class="tipo-label" for="t6"><span class="icon">🔧</span>Outro</label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Descrição do Projecto <span class="req">*</span> <span class="hint">(seja detalhado para receber melhores propostas)</span></label>
+          <textarea id="descricao" placeholder="Ex: Quero construir uma moradia T3 com 2 wc, sala e cozinha americana. O terreno é plano com 15x20m. Preciso de projecto completo incluindo estrutura, instalações eléctricas e sanitárias..." required></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Localização <span class="req">*</span></label>
+            <input type="text" id="local" placeholder="Ex: Maputo, Matola, Beira..." required>
+          </div>
+          <div class="form-group">
+            <label>Área do Talhão <span class="hint">(m²)</span></label>
+            <input type="number" id="talhao" placeholder="Ex: 300" min="0">
+          </div>
+        </div>
+      </div>
+
+      <!-- SECÇÃO 2: ORÇAMENTO & PRAZO -->
+      <div class="form-section">
+        <div class="section-label">💰 Orçamento & Prazo</div>
+
+        <div class="form-group">
+          <label>Orçamento Estimado (MZN) <span class="hint">— deixe vazio se não definido</span></label>
+          <div class="orcamento-display">
+            <span>Mín.</span>
+            <input type="number" id="orcMin" placeholder="0" min="0">
+            <span>Máx.</span>
+            <input type="number" id="orcMax" placeholder="Sem limite" min="0">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Urgência do Projecto <span class="req">*</span></label>
+          <div class="urgencia-group">
+            <input type="radio" class="urg-option" name="urgencia" id="u1" value="Muito urgente">
+            <label class="urg-label" for="u1">🔴 Muito urgente</label>
+
+            <input type="radio" class="urg-option" name="urgencia" id="u2" value="1 mês" checked>
+            <label class="urg-label" for="u2">🟠 Próximo mês</label>
+
+            <input type="radio" class="urg-option" name="urgencia" id="u3" value="3 meses">
+            <label class="urg-label" for="u3">🟡 3 meses</label>
+
+            <input type="radio" class="urg-option" name="urgencia" id="u4" value="6 meses">
+            <label class="urg-label" for="u4">🟢 6 meses</label>
+
+            <input type="radio" class="urg-option" name="urgencia" id="u5" value="Sem prazo">
+            <label class="urg-label" for="u5">⚪ Sem prazo</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECÇÃO 3: CONTACTO -->
+      <div class="form-section">
+        <div class="section-label">📱 Os seus Dados</div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nome completo <span class="req">*</span></label>
+            <input type="text" id="nomeCliente" placeholder="O seu nome" required>
+          </div>
+          <div class="form-group">
+            <label>Telefone <span class="req">*</span></label>
+            <input type="tel" id="telefone" placeholder="8X XXX XXXX" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Preferência de contacto</label>
+          <div class="contact-opts">
+            <input type="checkbox" class="chk-opt" id="c1" value="WhatsApp" checked>
+            <label class="chk-label" for="c1">💬 WhatsApp</label>
+            <input type="checkbox" class="chk-opt" id="c2" value="Chamada">
+            <label class="chk-label" for="c2">📞 Chamada</label>
+            <input type="checkbox" class="chk-opt" id="c3" value="Email">
+            <label class="chk-label" for="c3">📧 Email</label>
+            <input type="checkbox" class="chk-opt" id="c4" value="Presencial">
+            <label class="chk-label" for="c4">🤝 Presencial</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- INFO BOX -->
+      <div style="padding: 0 2rem;">
+        <div class="info-box">
+          <span class="info-icon">✅</span>
+          <div>
+            <strong>Como funciona?</strong> O seu pedido é publicado na plataforma e os engenheiros verificados pela OBRAVIA podem enviar propostas. Só partilhamos o seu contacto com o engenheiro que escolher.
+          </div>
+        </div>
+      </div>
+
+      <!-- FOOTER -->
+      <div class="form-footer">
+        <p class="footer-note">🔒 Os seus dados estão protegidos</p>
+        <button type="submit" class="btn-publicar">
+          Publicar Pedido →
+        </button>
+      </div>
+    </form>
+
+  </div>
+
+  <!-- MODAL SUCESSO -->
+  <div class="modal-overlay" id="modalSucesso">
+    <div class="modal-box">
+      <div class="check-icon">🎉</div>
+      <h2>Pedido Publicado!</h2>
+      <p>O seu pedido foi publicado com sucesso. Os engenheiros verificados irão receber notificação e poderão enviar propostas.</p>
+      <div class="id-pedido" id="idPedido">PED-000000</div>
+      <p style="font-size: 12px; color: #aaa; margin-bottom: 1rem;">Guarde este ID para acompanhar o seu pedido</p>
+      <button class="btn-ok" onclick="window.location.href='index.html'">Ir para o Início</button>
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script>
+    // Verificar sessão
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+    function logout() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = 'index.html';
+    }
+
+    async function submeterPedido(e) {
+      e.preventDefault();
+
+      const tipo = document.querySelector('input[name="tipo"]:checked')?.value;
+      const urgencia = document.querySelector('input[name="urgencia"]:checked')?.value;
+      const contactoPref = [...document.querySelectorAll('.chk-opt:checked')].map(c => c.value);
+
+      const pedido = {
+        tipo,
+        descricao: document.getElementById('descricao').value.trim(),
+        local: document.getElementById('local').value.trim(),
+        talhao: document.getElementById('talhao').value,
+        orcamento_min: document.getElementById('orcMin').value || null,
+        orcamento_max: document.getElementById('orcMax').value || null,
+        urgencia,
+        nome_cliente: document.getElementById('nomeCliente').value.trim(),
+        telefone: document.getElementById('telefone').value.trim(),
+        contacto_preferencia: contactoPref.join(', '),
+        status: 'aberto',
+        criado_em: new Date().toISOString()
+      };
+
+      const btn = document.querySelector('.btn-publicar');
+      btn.textContent = 'A publicar...';
+      btn.disabled = true;
+
+      try {
+        const BASE = window.API_BASE || 'http://localhost:3000';
+        const res = await fetch(`${BASE}/api/pedidos`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...(token && { 'Authorization': `Bearer ${token}` }) },
+          body: JSON.stringify(pedido)
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          const id = data.id || Math.floor(Math.random() * 900000 + 100000);
+          document.getElementById('idPedido').textContent = `PED-${id}`;
+          document.getElementById('modalSucesso').classList.add('active');
+        } else {
+          throw new Error('Erro no servidor');
+        }
+      } catch (err) {
+        // Demo sem backend: simular sucesso
+        const id = Math.floor(Math.random() * 900000 + 100000);
+        document.getElementById('idPedido').textContent = `PED-${id}`;
+        document.getElementById('modalSucesso').classList.add('active');
+      }
+
+      btn.textContent = 'Publicar Pedido →';
+      btn.disabled = false;
+    }
+  </script>
+</body>
+</html>

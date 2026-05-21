@@ -1,297 +1,578 @@
-const sqlite3 = require('sqlite3').verbose();
-const bcrypt = require('bcrypt');
-const path = require('path');
-const crypto = require('crypto');
+// ============================================================
+//  OBRAVIA — db.js  (PostgreSQL)
+//  Migrado de SQLite → PostgreSQL + tabelas pedidos/propostas
+// ============================================================
 
-const dbPath = path.join(__dirname, 'database.db');
-const db = new sqlite3.Database(dbPath);
+const { Pool } = require('pg');
+const bcrypt = require('bcryptjs');
+const crypto    = require('crypto');
 
-// Promisify functions
-function runAsync(sql, params = []) {
-    return new Promise((resolve, reject) => {
-        db.run(sql, params, function(err) {
-            if (err) reject(err);
-            else resolve(this);
-        });
-    });
+// ── Conexão ──────────────────────────────────────────────────
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    // Fallback p/ desenvolvimento local sem DATABASE_URL
+    ...(process.env.DATABASE_URL ? {} : {
+        host:     process.env.PG_HOST     || 'localhost',
+        port:     parseInt(process.env.PG_PORT || '5432'),
+        database: process.env.PG_DATABASE || 'obravia',
+        user:     process.env.PG_USER     || 'postgres',
+        password: process.env.PG_PASSWORD || 'postgres',
+    }),
+    ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false,
+    max: 10,
+    idleTimeoutMillis: 30000,
+});
+
+pool.on('error', (err) => console.error('❌ PostgreSQL pool error:', err));
+
+// ── Helpers ──────────────────────────────────────────────────
+async function query(sql, params = []) {
+    const client = await pool.connect();
+    try {
+        const res = await client.query(sql, params);
+        return res;
+    } finally {
+        client.release();
+    }
 }
 
-function getAsync(sql, params = []) {
-    return new Promise((resolve, reject) => {
-        db.get(sql, params, (err, row) => {
-            if (err) reject(err);
-            else resolve(row);
-        });
-    });
+async function getOne(sql, params = []) {
+    const res = await query(sql, params);
+    return res.rows[0] || null;
 }
 
-function allAsync(sql, params = []) {
-    return new Promise((resolve, reject) => {
-        db.all(sql, params, (err, rows) => {
-            if (err) reject(err);
-            else resolve(rows);
-        });
-    });
+async function getAll(sql, params = []) {
+    const res = await query(sql, params);
+    return res.rows;
 }
 
-// Inicializar banco de dados
+async function run(sql, params = []) {
+    const res = await query(sql, params);
+    return res;               // .rowCount, .rows[0].id via RETURNING
+}
+
+// ── Inicializar banco ─────────────────────────────────────────
 async function inicializarBanco() {
-    console.log('📦 Inicializando banco de dados...');
-    
-    // Criar tabela usuarios
-    await runAsync(`
+    console.log('📦 Inicializando banco de dados PostgreSQL...');
+
+    // ── usuarios ──
+    await run(`
         CREATE TABLE IF NOT EXISTS usuarios (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nome TEXT NOT NULL,
-            email TEXT UNIQUE NOT NULL,
-            senha TEXT NOT NULL,
-            role TEXT DEFAULT 'usuario',
-            status TEXT DEFAULT 'pendente',
-            telefone TEXT,
-            tipo TEXT,
-            numero_ordem TEXT,
-            diploma_path TEXT,
-            anos_experiencia TEXT,
-            especializacao TEXT,
-            linkedin TEXT,
-            empresa_nome TEXT,
-            nuit TEXT,
-            responsavel TEXT,
-            bi TEXT,
-            alvara_path TEXT,
-            nuit_comprovativo_path TEXT,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            data_criacao DATETIME DEFAULT CURRENT_TIMESTAMP
+            id                      SERIAL PRIMARY KEY,
+            nome                    TEXT NOT NULL,
+            email                   TEXT UNIQUE NOT NULL,
+            senha                   TEXT NOT NULL,
+            role                    TEXT DEFAULT 'usuario',
+            status                  TEXT DEFAULT 'pendente',
+            telefone                TEXT,
+            tipo                    TEXT,
+            numero_ordem            TEXT,
+            diploma_path            TEXT,
+            anos_experiencia        TEXT,
+            especializacao          TEXT,
+            linkedin                TEXT,
+            empresa_nome            TEXT,
+            nuit                    TEXT,
+            responsavel             TEXT,
+            bi                      TEXT,
+            alvara_path             TEXT,
+            nuit_comprovativo_path  TEXT,
+            created_at              TIMESTAMPTZ DEFAULT NOW(),
+            data_criacao            TIMESTAMPTZ DEFAULT NOW()
         )
     `);
-    
-    // Criar tabela sessoes
-    await runAsync(`
+
+    // ── sessoes ──
+    await run(`
         CREATE TABLE IF NOT EXISTS sessoes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            token TEXT UNIQUE NOT NULL,
-            usuario_id INTEGER NOT NULL,
-            data_criacao DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+            id            SERIAL PRIMARY KEY,
+            token         TEXT UNIQUE NOT NULL,
+            usuario_id    INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+            data_criacao  TIMESTAMPTZ DEFAULT NOW()
         )
     `);
-    
-    // Criar tabela projetos
-    await runAsync(`
+
+    // ── projetos ──
+    await run(`
         CREATE TABLE IF NOT EXISTS projetos (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            titulo TEXT NOT NULL,
-            descricao TEXT NOT NULL,
-            categoria TEXT DEFAULT 'Outros',
-            local TEXT,
-            tags TEXT,
-            fotos TEXT,
-            foto_capa TEXT,
-            usuario_id INTEGER NOT NULL,
-            engenheiro_nome TEXT,
-            data_criacao DATETIME DEFAULT CURRENT_TIMESTAMP,
-            data_atualizacao DATETIME,
-            FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+            id                SERIAL PRIMARY KEY,
+            titulo            TEXT NOT NULL,
+            descricao         TEXT NOT NULL,
+            categoria         TEXT DEFAULT 'Outros',
+            local             TEXT,
+            tags              TEXT,
+            fotos             JSONB DEFAULT '[]',
+            foto_capa         TEXT,
+            usuario_id        INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+            engenheiro_nome   TEXT,
+            data_criacao      TIMESTAMPTZ DEFAULT NOW(),
+            data_atualizacao  TIMESTAMPTZ
         )
     `);
-    
-    console.log('✅ Banco de dados inicializado com sucesso!');
+
+    // ── pedidos  (NOVO — clientes publicam pedidos de orçamento) ──
+    await run(`
+        CREATE TABLE IF NOT EXISTS pedidos (
+            id                   SERIAL PRIMARY KEY,
+            codigo               TEXT UNIQUE,          -- PED-XXXXXX gerado pela app
+            tipo                 TEXT NOT NULL,         -- Residencial, Comercial...
+            descricao            TEXT NOT NULL,
+            local                TEXT NOT NULL,
+            talhao               NUMERIC,              -- m²
+            orcamento_min        NUMERIC,
+            orcamento_max        NUMERIC,
+            urgencia             TEXT,
+            nome_cliente         TEXT NOT NULL,
+            telefone             TEXT,
+            email_cliente        TEXT,
+            contacto_preferencia TEXT,
+            status               TEXT DEFAULT 'aberto', -- aberto|propostas|negociacao|fechado|cancelado
+            usuario_id           INTEGER REFERENCES usuarios(id) ON DELETE SET NULL,
+            criado_em            TIMESTAMPTZ DEFAULT NOW(),
+            atualizado_em        TIMESTAMPTZ DEFAULT NOW()
+        )
+    `);
+
+    // ── propostas  (NOVO — engenheiros enviam propostas a pedidos) ──
+    await run(`
+        CREATE TABLE IF NOT EXISTS propostas (
+            id                SERIAL PRIMARY KEY,
+            pedido_id         INTEGER NOT NULL REFERENCES pedidos(id) ON DELETE CASCADE,
+            engenheiro_id     INTEGER REFERENCES usuarios(id) ON DELETE SET NULL,
+            engenheiro_nome   TEXT,
+            valor             NUMERIC,
+            prazo             TEXT,
+            descricao         TEXT,
+            disponibilidade   TEXT,
+            status            TEXT DEFAULT 'pendente',  -- pendente|aceite|rejeitada
+            enviada_em        TIMESTAMPTZ DEFAULT NOW(),
+            atualizado_em     TIMESTAMPTZ DEFAULT NOW()
+        )
+    `);
+
+    // Índices úteis
+    await run(`CREATE INDEX IF NOT EXISTS idx_pedidos_status    ON pedidos(status)`);
+    await run(`CREATE INDEX IF NOT EXISTS idx_pedidos_tipo      ON pedidos(tipo)`);
+    await run(`CREATE INDEX IF NOT EXISTS idx_propostas_pedido  ON propostas(pedido_id)`);
+    await run(`CREATE INDEX IF NOT EXISTS idx_propostas_eng     ON propostas(engenheiro_id)`);
+    await run(`CREATE INDEX IF NOT EXISTS idx_sessoes_token     ON sessoes(token)`);
+
+    console.log('✅ Banco PostgreSQL inicializado com sucesso!');
 }
 
-// ==================== USUÁRIOS ====================
+// ════════════════════════════════════════════
+//  UTILIZADORES
+// ════════════════════════════════════════════
 
 async function cadastrarEmpresa(dados) {
-    const { nome_empresa, email, senha, nuit, responsavel, bi, alvara_path, nuit_comprovativo_path } = dados;
+    const { nome_empresa, email, senha, nuit, responsavel, bi,
+            alvara_path, nuit_comprovativo_path } = dados;
     const senhaHash = await bcrypt.hash(senha, 10);
-    
-    const result = await runAsync(
-        `INSERT INTO usuarios (nome, email, senha, role, status, tipo, empresa_nome, nuit, responsavel, bi, alvara_path, nuit_comprovativo_path) 
-         VALUES (?, ?, ?, 'empresa', 'pendente', 'empresa', ?, ?, ?, ?, ?, ?)`,
-        [nome_empresa, email, senhaHash, nome_empresa, nuit, responsavel, bi, alvara_path, nuit_comprovativo_path]
+    const res = await run(
+        `INSERT INTO usuarios
+            (nome, email, senha, role, status, tipo,
+             empresa_nome, nuit, responsavel, bi, alvara_path, nuit_comprovativo_path)
+         VALUES ($1,$2,$3,'empresa','pendente','empresa',$4,$5,$6,$7,$8,$9)
+         RETURNING id`,
+        [nome_empresa, email, senhaHash, nome_empresa, nuit, responsavel,
+         bi, alvara_path, nuit_comprovativo_path]
     );
-    return result.lastID;
+    return res.rows[0].id;
 }
 
 async function cadastrarSenior(dados) {
-    const { nome, email, senha, numero_ordem, diploma_path, anos_experiencia, data_validade_ordem } = dados;
+    const { nome, email, senha, numero_ordem, diploma_path,
+            anos_experiencia, data_validade_ordem } = dados;
     const senhaHash = await bcrypt.hash(senha, 10);
-    
-    const result = await runAsync(
-        `INSERT INTO usuarios (nome, email, senha, role, status, tipo, numero_ordem, diploma_path, anos_experiencia) 
-         VALUES (?, ?, ?, 'senior', 'pendente', 'senior', ?, ?, ?)`,
+    const res = await run(
+        `INSERT INTO usuarios
+            (nome, email, senha, role, status, tipo, numero_ordem, diploma_path, anos_experiencia)
+         VALUES ($1,$2,$3,'senior','pendente','senior',$4,$5,$6)
+         RETURNING id`,
         [nome, email, senhaHash, numero_ordem, diploma_path, anos_experiencia]
     );
-    return result.lastID;
+    return res.rows[0].id;
 }
 
 async function cadastrarJunior(dados) {
-    const { nome, email, senha, numero_ordem, diploma_path, especializacao, linkedin } = dados;
+    const { nome, email, senha, numero_ordem, diploma_path,
+            especializacao, linkedin } = dados;
     const senhaHash = await bcrypt.hash(senha, 10);
-    
-    const result = await runAsync(
-        `INSERT INTO usuarios (nome, email, senha, role, status, tipo, numero_ordem, diploma_path, especializacao, linkedin) 
-         VALUES (?, ?, ?, 'junior', 'pendente', 'junior', ?, ?, ?, ?)`,
+    const res = await run(
+        `INSERT INTO usuarios
+            (nome, email, senha, role, status, tipo, numero_ordem, diploma_path, especializacao, linkedin)
+         VALUES ($1,$2,$3,'junior','pendente','junior',$4,$5,$6,$7)
+         RETURNING id`,
         [nome, email, senhaHash, numero_ordem, diploma_path, especializacao, linkedin]
     );
-    return result.lastID;
+    return res.rows[0].id;
 }
 
 async function buscarUsuarioPorEmail(email) {
-    return await getAsync('SELECT * FROM usuarios WHERE email = ?', [email]);
+    return getOne('SELECT * FROM usuarios WHERE email = $1', [email]);
 }
 
 async function buscarUsuarioPorId(id) {
-    return await getAsync('SELECT * FROM usuarios WHERE id = ?', [id]);
+    return getOne('SELECT * FROM usuarios WHERE id = $1', [id]);
 }
 
 async function verificarCadastro(email) {
-    return await getAsync('SELECT id, nome, email, role, tipo, status FROM usuarios WHERE email = ?', [email]);
+    return getOne(
+        'SELECT id, nome, email, role, tipo, status FROM usuarios WHERE email = $1',
+        [email]
+    );
 }
 
 async function listarUsuarios() {
-    try {
-        return await allAsync('SELECT id, nome, email, role, tipo, status, created_at FROM usuarios ORDER BY id DESC');
-    } catch (error) {
-        return await allAsync('SELECT id, nome, email, role, tipo, status FROM usuarios ORDER BY id DESC');
-    }
+    return getAll(
+        'SELECT id, nome, email, role, tipo, status, created_at FROM usuarios ORDER BY id DESC'
+    );
 }
 
 async function listarUsuariosPendentes() {
-    try {
-        return await allAsync("SELECT id, nome, email, tipo, status, created_at FROM usuarios WHERE status = 'pendente' ORDER BY created_at DESC");
-    } catch (error) {
-        return await allAsync("SELECT id, nome, email, tipo, status FROM usuarios WHERE status = 'pendente' ORDER BY id DESC");
-    }
+    return getAll(
+        `SELECT id, nome, email, tipo, status, created_at
+         FROM usuarios WHERE status = 'pendente'
+         ORDER BY created_at DESC`
+    );
 }
 
 async function aprovarUsuario(id) {
-    await runAsync("UPDATE usuarios SET status = 'aprovado' WHERE id = ?", [id]);
+    await run("UPDATE usuarios SET status = 'aprovado' WHERE id = $1", [id]);
 }
 
 async function rejeitarUsuario(id) {
-    await runAsync("DELETE FROM usuarios WHERE id = ?", [id]);
+    await run('DELETE FROM usuarios WHERE id = $1', [id]);
 }
 
-// ==================== SESSÕES ====================
+// ════════════════════════════════════════════
+//  SESSÕES
+// ════════════════════════════════════════════
 
 async function criarSessao(usuarioId) {
     const token = crypto.randomBytes(64).toString('hex');
-    await runAsync('INSERT INTO sessoes (token, usuario_id) VALUES (?, ?)', [token, usuarioId]);
+    await run('INSERT INTO sessoes (token, usuario_id) VALUES ($1, $2)', [token, usuarioId]);
     return token;
 }
 
 async function buscarSessao(token) {
-    return await getAsync('SELECT * FROM sessoes WHERE token = ?', [token]);
+    return getOne('SELECT * FROM sessoes WHERE token = $1', [token]);
 }
 
 async function removerSessao(token) {
-    await runAsync('DELETE FROM sessoes WHERE token = ?', [token]);
+    await run('DELETE FROM sessoes WHERE token = $1', [token]);
 }
 
-// ==================== PROJETOS ====================
+// ════════════════════════════════════════════
+//  PROJETOS
+// ════════════════════════════════════════════
 
 async function criarProjeto(dados) {
-    const { titulo, descricao, categoria, local, tags, fotos, foto_capa, usuario_id, engenheiro_nome } = dados;
-    
+    const { titulo, descricao, categoria, local, tags,
+            fotos, foto_capa, usuario_id, engenheiro_nome } = dados;
     const fotosJson = JSON.stringify(fotos || []);
-    const tagsStr = Array.isArray(tags) ? tags.join(',') : (tags || '');
-    
-    const result = await runAsync(
-        `INSERT INTO projetos (titulo, descricao, categoria, local, tags, fotos, foto_capa, usuario_id, engenheiro_nome) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [titulo, descricao, categoria || 'Outros', local || '', tagsStr, fotosJson, foto_capa || '', usuario_id, engenheiro_nome || '']
+    const tagsStr   = Array.isArray(tags) ? tags.join(',') : (tags || '');
+    const res = await run(
+        `INSERT INTO projetos
+            (titulo, descricao, categoria, local, tags, fotos, foto_capa, usuario_id, engenheiro_nome)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+         RETURNING id`,
+        [titulo, descricao, categoria || 'Outros', local || '',
+         tagsStr, fotosJson, foto_capa || '', usuario_id, engenheiro_nome || '']
     );
-    return result.lastID;
+    return res.rows[0].id;
 }
 
 async function listarProjetosPorUsuario(usuario_id) {
-    return await allAsync('SELECT * FROM projetos WHERE usuario_id = ? ORDER BY data_criacao DESC', [usuario_id]);
+    return getAll(
+        'SELECT * FROM projetos WHERE usuario_id = $1 ORDER BY data_criacao DESC',
+        [usuario_id]
+    );
 }
 
 async function listarTodosProjetos() {
-    return await allAsync('SELECT * FROM projetos ORDER BY data_criacao DESC');
+    return getAll('SELECT * FROM projetos ORDER BY data_criacao DESC');
 }
 
 async function buscarProjetoPorId(id) {
-    return await getAsync('SELECT * FROM projetos WHERE id = ?', [id]);
+    return getOne('SELECT * FROM projetos WHERE id = $1', [id]);
 }
 
 async function atualizarProjeto(id, dados) {
     const { titulo, descricao, categoria, local, tags } = dados;
     const tagsStr = Array.isArray(tags) ? tags.join(',') : (tags || '');
-    
-    await runAsync(
-        `UPDATE projetos SET titulo = ?, descricao = ?, categoria = ?, local = ?, tags = ?, data_atualizacao = CURRENT_TIMESTAMP 
-         WHERE id = ?`,
+    await run(
+        `UPDATE projetos
+         SET titulo=$1, descricao=$2, categoria=$3, local=$4, tags=$5,
+             data_atualizacao=NOW()
+         WHERE id=$6`,
         [titulo, descricao, categoria, local, tagsStr, id]
     );
 }
 
 async function excluirProjeto(id) {
-    await runAsync('DELETE FROM projetos WHERE id = ?', [id]);
+    await run('DELETE FROM projetos WHERE id = $1', [id]);
 }
 
-// ==================== AUTENTICAÇÃO ====================
+// ════════════════════════════════════════════
+//  PEDIDOS  (novo fluxo)
+// ════════════════════════════════════════════
+
+function gerarCodigoPedido(id) {
+    return `PED-${String(id).padStart(6, '0')}`;
+}
+
+async function criarPedido(dados) {
+    const {
+        tipo, descricao, local, talhao,
+        orcamento_min, orcamento_max, urgencia,
+        nome_cliente, telefone, email_cliente,
+        contacto_preferencia, usuario_id
+    } = dados;
+
+    const res = await run(
+        `INSERT INTO pedidos
+            (tipo, descricao, local, talhao, orcamento_min, orcamento_max,
+             urgencia, nome_cliente, telefone, email_cliente,
+             contacto_preferencia, status, usuario_id)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'aberto',$12)
+         RETURNING id`,
+        [tipo, descricao, local, talhao || null,
+         orcamento_min || null, orcamento_max || null, urgencia,
+         nome_cliente, telefone || null, email_cliente || null,
+         contacto_preferencia || null, usuario_id || null]
+    );
+    const id     = res.rows[0].id;
+    const codigo = gerarCodigoPedido(id);
+    await run('UPDATE pedidos SET codigo = $1 WHERE id = $2', [codigo, id]);
+    return { id, codigo };
+}
+
+async function listarPedidos(filtros = {}) {
+    let sql    = 'SELECT * FROM pedidos';
+    const params = [];
+    const where  = [];
+
+    if (filtros.status && filtros.status !== 'todos') {
+        params.push(filtros.status);
+        where.push(`status = $${params.length}`);
+    }
+    if (filtros.tipo) {
+        params.push(filtros.tipo);
+        where.push(`tipo = $${params.length}`);
+    }
+    if (filtros.busca) {
+        params.push(`%${filtros.busca}%`);
+        const n = params.length;
+        where.push(`(descricao ILIKE $${n} OR local ILIKE $${n} OR nome_cliente ILIKE $${n})`);
+    }
+
+    if (where.length) sql += ' WHERE ' + where.join(' AND ');
+    sql += ' ORDER BY criado_em DESC';
+
+    return getAll(sql, params);
+}
+
+async function buscarPedidoPorId(id) {
+    return getOne('SELECT * FROM pedidos WHERE id = $1', [id]);
+}
+
+async function buscarPedidoPorCodigo(codigo) {
+    return getOne('SELECT * FROM pedidos WHERE codigo = $1', [codigo]);
+}
+
+async function atualizarStatusPedido(id, status) {
+    await run(
+        'UPDATE pedidos SET status=$1, atualizado_em=NOW() WHERE id=$2',
+        [status, id]
+    );
+}
+
+async function eliminarPedido(id) {
+    await run('DELETE FROM pedidos WHERE id = $1', [id]);
+}
+
+async function pedidosPorUsuario(usuario_id) {
+    return getAll(
+        'SELECT * FROM pedidos WHERE usuario_id = $1 ORDER BY criado_em DESC',
+        [usuario_id]
+    );
+}
+
+// ════════════════════════════════════════════
+//  PROPOSTAS  (novo fluxo)
+// ════════════════════════════════════════════
+
+async function criarProposta(dados) {
+    const {
+        pedido_id, engenheiro_id, engenheiro_nome,
+        valor, prazo, descricao, disponibilidade
+    } = dados;
+
+    // Verifica se já enviou proposta para este pedido
+    const existe = await getOne(
+        'SELECT id FROM propostas WHERE pedido_id=$1 AND engenheiro_id=$2',
+        [pedido_id, engenheiro_id || null]
+    );
+    if (existe) throw new Error('Já enviou uma proposta para este pedido.');
+
+    const res = await run(
+        `INSERT INTO propostas
+            (pedido_id, engenheiro_id, engenheiro_nome, valor, prazo,
+             descricao, disponibilidade, status)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,'pendente')
+         RETURNING id`,
+        [pedido_id, engenheiro_id || null, engenheiro_nome || null,
+         valor || null, prazo || null, descricao || null, disponibilidade || null]
+    );
+
+    // Avança status do pedido para 'propostas'
+    await run(
+        `UPDATE pedidos SET status='propostas', atualizado_em=NOW()
+         WHERE id=$1 AND status='aberto'`,
+        [pedido_id]
+    );
+
+    return res.rows[0].id;
+}
+
+async function listarPropostasPorPedido(pedido_id) {
+    return getAll(
+        'SELECT * FROM propostas WHERE pedido_id = $1 ORDER BY enviada_em DESC',
+        [pedido_id]
+    );
+}
+
+async function listarPropostasPorEngenheiro(engenheiro_id) {
+    return getAll(
+        `SELECT p.*, pd.tipo, pd.local, pd.nome_cliente, pd.codigo AS pedido_codigo
+         FROM propostas p
+         JOIN pedidos pd ON p.pedido_id = pd.id
+         WHERE p.engenheiro_id = $1
+         ORDER BY p.enviada_em DESC`,
+        [engenheiro_id]
+    );
+}
+
+async function listarTodasPropostas() {
+    return getAll(
+        `SELECT p.*,
+                pd.tipo         AS pedido_tipo,
+                pd.local        AS pedido_local,
+                pd.nome_cliente AS pedido_cliente,
+                pd.codigo       AS pedido_codigo
+         FROM propostas p
+         JOIN pedidos pd ON p.pedido_id = pd.id
+         ORDER BY p.enviada_em DESC`
+    );
+}
+
+async function aceitarProposta(proposta_id) {
+    const prop = await getOne('SELECT * FROM propostas WHERE id = $1', [proposta_id]);
+    if (!prop) throw new Error('Proposta não encontrada.');
+
+    // Aceitar esta
+    await run(
+        "UPDATE propostas SET status='aceite', atualizado_em=NOW() WHERE id=$1",
+        [proposta_id]
+    );
+    // Rejeitar restantes do mesmo pedido
+    await run(
+        "UPDATE propostas SET status='rejeitada', atualizado_em=NOW() WHERE pedido_id=$1 AND id<>$2",
+        [prop.pedido_id, proposta_id]
+    );
+    // Fechar pedido
+    await run(
+        "UPDATE pedidos SET status='fechado', atualizado_em=NOW() WHERE id=$1",
+        [prop.pedido_id]
+    );
+}
+
+async function rejeitarProposta(proposta_id) {
+    await run(
+        "UPDATE propostas SET status='rejeitada', atualizado_em=NOW() WHERE id=$1",
+        [proposta_id]
+    );
+}
+
+// ════════════════════════════════════════════
+//  AUTENTICAÇÃO
+// ════════════════════════════════════════════
 
 async function login(email, senha) {
     const user = await buscarUsuarioPorEmail(email);
-    
-    if (!user) {
-        return { success: false, error: 'Usuário não encontrado' };
-    }
-    
+    if (!user)                            return { success: false, error: 'Utilizador não encontrado' };
     const senhaValida = await bcrypt.compare(senha, user.senha);
-    if (!senhaValida) {
-        return { success: false, error: 'Senha incorreta' };
-    }
-    
-    if (user.status !== 'aprovado') {
-        return { success: false, error: 'Aguardando aprovação do administrador' };
-    }
-    
+    if (!senhaValida)                     return { success: false, error: 'Senha incorrecta' };
+    if (user.status !== 'aprovado')       return { success: false, error: 'Aguardando aprovação do administrador' };
+
     const token = await criarSessao(user.id);
-    
     return {
         success: true,
-        token: token,
+        token,
         user: {
-            id: user.id,
-            nome: user.nome,
-            email: user.email,
-            role: user.role,
-            tipo: user.tipo,
+            id:     user.id,
+            nome:   user.nome,
+            email:  user.email,
+            role:   user.role,
+            tipo:   user.tipo,
             status: user.status
         }
     };
 }
 
 async function verificarToken(token) {
-    const sessao = await getAsync(
-        `SELECT s.token, s.usuario_id, u.id, u.nome, u.email, u.role, u.tipo, u.status 
-         FROM sessoes s 
-         JOIN usuarios u ON s.usuario_id = u.id 
-         WHERE s.token = ?`,
+    const sessao = await getOne(
+        `SELECT s.token, s.usuario_id,
+                u.id, u.nome, u.email, u.role, u.tipo, u.status
+         FROM sessoes s
+         JOIN usuarios u ON s.usuario_id = u.id
+         WHERE s.token = $1`,
         [token]
     );
-    
     if (!sessao) return null;
-    
     return {
-        id: sessao.usuario_id,
-        nome: sessao.nome,
-        email: sessao.email,
-        role: sessao.role,
-        tipo: sessao.tipo,
+        id:     sessao.usuario_id,
+        nome:   sessao.nome,
+        email:  sessao.email,
+        role:   sessao.role,
+        tipo:   sessao.tipo,
         status: sessao.status
     };
 }
 
-// ==================== EXPORTS ====================
+// ════════════════════════════════════════════
+//  ESTATÍSTICAS ADMIN  (novo fluxo)
+// ════════════════════════════════════════════
+
+async function estatisticasAdmin() {
+    const [pedidos, propostas, usuarios, engenheiros] = await Promise.all([
+        getOne('SELECT COUNT(*) AS total FROM pedidos'),
+        getOne('SELECT COUNT(*) AS total FROM propostas'),
+        getOne('SELECT COUNT(*) AS total FROM usuarios'),
+        getOne("SELECT COUNT(*) AS total FROM usuarios WHERE status='aprovado' AND tipo IN ('senior','junior')"),
+    ]);
+    const porStatus = await getAll(
+        `SELECT status, COUNT(*) AS total FROM pedidos GROUP BY status`
+    );
+    return {
+        total_pedidos:     parseInt(pedidos.total),
+        total_propostas:   parseInt(propostas.total),
+        total_usuarios:    parseInt(usuarios.total),
+        total_engenheiros: parseInt(engenheiros.total),
+        pedidos_por_status: porStatus
+    };
+}
+
+// ════════════════════════════════════════════
+//  EXPORTS
+// ════════════════════════════════════════════
+
 module.exports = {
-    // Database
-    db,
-    
-    // Usuários
+    // Conexão directa (para uso avançado)
+    pool,
+
+    // Utilizadores
     cadastrarEmpresa,
     cadastrarSenior,
     cadastrarJunior,
@@ -302,27 +583,47 @@ module.exports = {
     listarUsuariosPendentes,
     aprovarUsuario,
     rejeitarUsuario,
-    
+
     // Sessões
     criarSessao,
     buscarSessao,
     removerSessao,
-    
-    // Projetos
+
+    // Projectos (legado)
     criarProjeto,
     listarProjetosPorUsuario,
     listarTodosProjetos,
     buscarProjetoPorId,
     atualizarProjeto,
     excluirProjeto,
-    
+
+    // Pedidos (novo fluxo)
+    criarPedido,
+    listarPedidos,
+    buscarPedidoPorId,
+    buscarPedidoPorCodigo,
+    atualizarStatusPedido,
+    eliminarPedido,
+    pedidosPorUsuario,
+
+    // Propostas (novo fluxo)
+    criarProposta,
+    listarPropostasPorPedido,
+    listarPropostasPorEngenheiro,
+    listarTodasPropostas,
+    aceitarProposta,
+    rejeitarProposta,
+
     // Autenticação
     login,
     verificarToken,
-    
+
+    // Admin
+    estatisticasAdmin,
+
     // Init
-    inicializarBanco
+    inicializarBanco,
 };
 
-// Inicializar banco ao carregar
+// Inicializar ao carregar o módulo
 inicializarBanco().catch(console.error);

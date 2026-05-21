@@ -10,6 +10,7 @@ uploads/
 
 # Variáveis de ambiente
 .env
-
+env.example
 # Logs
 npm-debug.log*
+

@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" href="img/LOGO.png" type="image/x-icon">
+  <title>OBRAVIA — Admin · Novo Fluxo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --laranja: #D85A30; --laranja-escuro: #993C1D;
+      --laranja-claro: #FAECE7;
+      --cinza-claro: #F1EFE8; --cinza-texto: #444441;
+      --cinza-suave: #D3D1C7; --branco: #ffffff;
+      --verde: #3B6D11; --verde-claro: #EAF3DE;
+      --azul: #1D5FAD; --azul-claro: #E8F0FB;
+      --amarelo: #B45309; --amarelo-claro: #FEF3C7;
+    }
+    body { font-family: 'DM Sans', sans-serif; background: var(--cinza-claro); color: var(--cinza-texto); display: flex; min-height: 100vh; }
+
+    /* ── SIDEBAR ADMIN ── */
+    .admin-sidebar {
+      width: 230px; flex-shrink: 0;
+      background: var(--cinza-texto);
+      min-height: 100vh;
+      position: sticky; top: 0;
+      display: flex; flex-direction: column;
+    }
+    .sidebar-logo {
+      padding: 1.5rem 1.3rem 1rem;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .sidebar-logo img { height: 42px; object-fit: contain; }
+    .admin-badge {
+      background: rgba(216,90,48,0.2);
+      color: var(--laranja); font-size: 10px; font-weight: 700;
+      padding: 3px 8px; border-radius: 4px;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      display: inline-block; margin-top: 6px;
+    }
+
+    .sidebar-nav { padding: 1rem 0; flex: 1; }
+    .nav-section-label {
+      font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.35);
+      text-transform: uppercase; letter-spacing: 0.08em;
+      padding: 0.8rem 1.3rem 0.4rem;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 1.3rem;
+      color: rgba(255,255,255,0.65);
+      cursor: pointer; font-size: 13px; font-weight: 500;
+      transition: all 0.15s;
+      border-left: 3px solid transparent;
+      user-select: none;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.06); color: white; }
+    .nav-item.active { background: rgba(216,90,48,0.15); color: var(--laranja); border-left-color: var(--laranja); }
+    .nav-item .icon { font-size: 1rem; width: 20px; text-align: center; }
+    .nav-badge {
+      margin-left: auto;
+      background: var(--laranja);
+      color: white; font-size: 10px; font-weight: 700;
+      padding: 2px 7px; border-radius: 10px;
+    }
+
+    .sidebar-footer {
+      padding: 1rem 1.3rem;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      font-size: 12px; color: rgba(255,255,255,0.4);
+    }
+
+    /* ── MAIN ── */
+    .admin-main { flex: 1; display: flex; flex-direction: column; overflow: auto; }
+
+    .top-bar {
+      background: var(--branco);
+      border-bottom: 1.5px solid var(--cinza-suave);
+      padding: 0 2rem;
+      height: 64px;
+      display: flex; align-items: center;
+      gap: 1rem;
+      position: sticky; top: 0; z-index: 50;
+    }
+    .top-bar h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.05rem; font-weight: 800;
+    }
+    .top-bar-actions { margin-left: auto; display: flex; gap: 0.8rem; align-items: center; }
+    .btn-refresh {
+      background: var(--cinza-claro); border: 1.5px solid var(--cinza-suave);
+      padding: 7px 14px; border-radius: 7px;
+      font-size: 12px; font-weight: 600; cursor: pointer;
+      color: var(--cinza-texto); transition: all 0.15s;
+    }
+    .btn-refresh:hover { border-color: var(--laranja); color: var(--laranja); }
+    .admin-name { font-size: 13px; color: #999; }
+
+    .content { padding: 1.8rem 2rem; }
+
+    /* ── STATS GRID ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem; margin-bottom: 2rem;
+    }
+    @media (max-width: 900px) { .stats-grid { grid-template-columns: repeat(2,1fr); } }
+
+    .stat-card {
+      background: var(--branco);
+      border: 1.5px solid var(--cinza-suave);
+      border-radius: 12px;
+      padding: 1.3rem 1.4rem;
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .stat-card .label { font-size: 12px; color: #999; font-weight: 500; }
+    .stat-card .value {
+      font-family: 'Syne', sans-serif;
+      font-size: 2rem; font-weight: 800;
+    }
+    .stat-card .sub { font-size: 11px; color: #bbb; }
+    .stat-card.laranja .value { color: var(--laranja); }
+    .stat-card.verde .value { color: var(--verde); }
+    .stat-card.azul .value { color: var(--azul); }
+    .stat-card.amarelo .value { color: var(--amarelo); }
+    .stat-icon { font-size: 1.4rem; margin-bottom: 0.3rem; }
+
+    /* ── PANEL AREA ── */
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .panel-header {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.2rem; flex-wrap: wrap; gap: 0.8rem;
+    }
+    .panel-header h2 {
+      font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 800;
+    }
+
+    /* ── TABLE ── */
+    .table-card {
+      background: var(--branco);
+      border: 1.5px solid var(--cinza-suave);
+      border-radius: 14px; overflow: hidden;
+    }
+    .table-search {
+      padding: 1rem 1.5rem;
+      border-bottom: 1.5px solid var(--cinza-claro);
+      display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap;
+    }
+    .search-input {
+      padding: 8px 12px; border: 1.5px solid var(--cinza-suave);
+      border-radius: 7px; font-family: 'DM Sans', sans-serif;
+      font-size: 13px; outline: none; width: 220px;
+    }
+    .search-input:focus { border-color: var(--laranja); }
+    .filter-pills { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .pill {
+      padding: 6px 13px; border-radius: 20px;
+      border: 1.5px solid var(--cinza-suave);
+      font-size: 11px; font-weight: 600; cursor: pointer;
+      color: #888; transition: all 0.15s;
+    }
+    .pill:hover { border-color: var(--laranja); color: var(--laranja); }
+    .pill.active { background: var(--laranja); border-color: var(--laranja); color: white; }
+
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      text-align: left; font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.05em;
+      color: #aaa;
+      padding: 0.8rem 1.5rem;
+      border-bottom: 1.5px solid var(--cinza-claro);
+      background: #FAFAF7;
+    }
+    tbody tr { border-bottom: 1px solid var(--cinza-claro); transition: background 0.1s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #FAFAF7; }
+    td { padding: 0.9rem 1.5rem; font-size: 13px; vertical-align: middle; }
+
+    .td-id { font-family: monospace; font-size: 12px; color: #aaa; }
+    .td-nome { font-weight: 600; }
+    .td-local { color: #888; font-size: 12px; }
+
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 10px; border-radius: 20px;
+      font-size: 11px; font-weight: 700;
+    }
+    .status-aberto { background: var(--azul-claro); color: var(--azul); }
+    .status-propostas { background: var(--amarelo-claro); color: var(--amarelo); }
+    .status-fechado { background: var(--verde-claro); color: var(--verde); }
+    .status-pendente { background: var(--laranja-claro); color: var(--laranja); }
+    .status-aceite { background: var(--verde-claro); color: var(--verde); }
+    .status-verificado { background: var(--verde-claro); color: var(--verde); }
+    .status-pendente-ver { background: var(--amarelo-claro); color: var(--amarelo); }
+
+    .td-actions { white-space: nowrap; }
+    .btn-action {
+      background: none; border: 1.5px solid var(--cinza-suave);
+      padding: 5px 12px; border-radius: 6px;
+      font-size: 11px; font-weight: 600; cursor: pointer;
+      transition: all 0.15s; margin-right: 4px;
+    }
+    .btn-action:hover { border-color: var(--laranja); color: var(--laranja); }
+    .btn-action.danger:hover { border-color: #dc2626; color: #dc2626; }
+    .btn-action.success { border-color: var(--verde); color: var(--verde); }
+
+    /* ── FLUXO VIEW ── */
+    .fluxo-board {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+    }
+    @media (max-width: 900px) { .fluxo-board { grid-template-columns: repeat(2,1fr); } }
+
+    .kanban-col {
+      background: var(--branco);
+      border: 1.5px solid var(--cinza-suave);
+      border-radius: 12px; overflow: hidden;
+    }
+    .kanban-header {
+      padding: 1rem 1.2rem;
+      border-bottom: 1.5px solid var(--cinza-claro);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .kanban-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 12px; font-weight: 700;
+    }
+    .kanban-count {
+      background: var(--cinza-claro);
+      border-radius: 10px; padding: 2px 8px;
+      font-size: 11px; font-weight: 700; color: #888;
+    }
+    .kanban-items { padding: 0.8rem; display: flex; flex-direction: column; gap: 0.6rem; min-height: 200px; }
+    .kanban-item {
+      background: var(--cinza-claro); border-radius: 8px;
+      padding: 0.8rem 1rem; font-size: 12px;
+      border-left: 3px solid var(--cinza-suave);
+      cursor: default;
+    }
+    .kanban-item.laranja { border-left-color: var(--laranja); }
+    .kanban-item.amarelo { border-left-color: #F59E0B; }
+    .kanban-item.verde { border-left-color: var(--verde); }
+    .kanban-item-id { font-family: monospace; font-size: 10px; color: #aaa; margin-bottom: 3px; }
+    .kanban-item-title { font-weight: 600; color: var(--cinza-texto); margin-bottom: 2px; }
+    .kanban-item-meta { color: #999; font-size: 11px; }
+
+    .empty-kanban {
+      text-align: center; padding: 2rem;
+      font-size: 12px; color: #ccc;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="admin-sidebar">
+    <div class="sidebar-logo">
+      <img src="img/OBRAVIA.jpeg" alt="OBRAVIA" onerror="this.src='https://placehold.co/160x42/D85A30/FFFFFF?text=OBRAVIA'">
+      <div class="admin-badge">Admin</div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Visão Geral</div>
+      <div class="nav-item active" onclick="showPanel('dashboard', this)">
+        <span class="icon">📊</span> Dashboard
+      </div>
+      <div class="nav-item" onclick="showPanel('fluxo', this)">
+        <span class="icon">🔄</span> Fluxo Kanban
+      </div>
+
+      <div class="nav-section-label">Gestão</div>
+      <div class="nav-item" onclick="showPanel('pedidos', this)">
+        <span class="icon">📋</span> Pedidos
+        <span class="nav-badge" id="badgePedidos">5</span>
+      </div>
+      <div class="nav-item" onclick="showPanel('propostas', this)">
+        <span class="icon">✏️</span> Propostas
+        <span class="nav-badge" id="badgePropostas">3</span>
+      </div>
+      <div class="nav-item" onclick="showPanel('engenheiros', this)">
+        <span class="icon">👷</span> Engenheiros
+      </div>
+      <div class="nav-item" onclick="showPanel('clientes', this)">
+        <span class="icon">👤</span> Clientes
+      </div>
+
+      <div class="nav-section-label">Config</div>
+      <div class="nav-item" onclick="window.location.href='admin.html'">
+        <span class="icon">⚙️</span> Admin Clássico
+      </div>
+      <div class="nav-item" onclick="logout()">
+        <span class="icon">🚪</span> Sair
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">OBRAVIA v2.0 · Novo Fluxo</div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="admin-main">
+    <div class="top-bar">
+      <h1 id="topTitle">Dashboard</h1>
+      <div class="top-bar-actions">
+        <button class="btn-refresh" onclick="carregarDados()">↻ Actualizar</button>
+        <span class="admin-name">Admin OBRAVIA</span>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ── DASHBOARD ── -->
+      <div class="panel active" id="panel-dashboard">
+        <div class="stats-grid">
+          <div class="stat-card laranja">
+            <div class="stat-icon">📋</div>
+            <div class="label">Pedidos Abertos</div>
+            <div class="value" id="statPedidosAbertos">0</div>
+            <div class="sub">Aguardam propostas</div>
+          </div>
+          <div class="stat-card amarelo">
+            <div class="stat-icon">✏️</div>
+            <div class="label">Propostas Enviadas</div>
+            <div class="value" id="statPropostas">0</div>
+            <div class="sub">Esta semana</div>
+          </div>
+          <div class="stat-card verde">
+            <div class="stat-icon">✅</div>
+            <div class="label">Contratos Fechados</div>
+            <div class="value" id="statFechados">0</div>
+            <div class="sub">Este mês</div>
+          </div>
+          <div class="stat-card azul">
+            <div class="stat-icon">👷</div>
+            <div class="label">Engenheiros Activos</div>
+            <div class="value" id="statEngenheiros">0</div>
+            <div class="sub">Verificados</div>
+          </div>
+        </div>
+
+        <!-- Últimos pedidos -->
+        <div class="panel-header">
+          <h2>Pedidos Recentes</h2>
+          <button class="btn-action" onclick="showPanel('pedidos', document.querySelector('[onclick*=pedidos]'))">Ver todos →</button>
+        </div>
+        <div class="table-card" id="recentPedidos">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Tipo</th>
+                <th>Cliente</th>
+                <th>Local</th>
+                <th>Urgência</th>
+                <th>Status</th>
+                <th>Acções</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyRecentes"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── KANBAN FLUXO ── -->
+      <div class="panel" id="panel-fluxo">
+        <div class="panel-header">
+          <h2>Fluxo de Pedidos</h2>
+        </div>
+        <div class="fluxo-board">
+          <div class="kanban-col">
+            <div class="kanban-header">
+              <span class="kanban-title">📥 Aberto</span>
+              <span class="kanban-count" id="k-aberto">0</span>
+            </div>
+            <div class="kanban-items" id="kanban-aberto"></div>
+          </div>
+          <div class="kanban-col">
+            <div class="kanban-header">
+              <span class="kanban-title">✏️ Com Propostas</span>
+              <span class="kanban-count" id="k-propostas">0</span>
+            </div>
+            <div class="kanban-items" id="kanban-propostas"></div>
+          </div>
+          <div class="kanban-col">
+            <div class="kanban-header">
+              <span class="kanban-title">🤝 Em Negociação</span>
+              <span class="kanban-count" id="k-negociacao">0</span>
+            </div>
+            <div class="kanban-items" id="kanban-negociacao"></div>
+          </div>
+          <div class="kanban-col">
+            <div class="kanban-header">
+              <span class="kanban-title">✅ Fechado</span>
+              <span class="kanban-count" id="k-fechado">0</span>
+            </div>
+            <div class="kanban-items" id="kanban-fechado"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PEDIDOS ── -->
+      <div class="panel" id="panel-pedidos">
+        <div class="panel-header">
+          <h2>Todos os Pedidos</h2>
+        </div>
+        <div class="table-card">
+          <div class="table-search">
+            <input class="search-input" type="text" placeholder="🔍 Pesquisar..." oninput="filtrarTabela('pedidos', this.value)">
+            <div class="filter-pills" id="pillsPedidos">
+              <span class="pill active" onclick="setPill('pedidos','todos',this)">Todos</span>
+              <span class="pill" onclick="setPill('pedidos','aberto',this)">Abertos</span>
+              <span class="pill" onclick="setPill('pedidos','propostas',this)">Com propostas</span>
+              <span class="pill" onclick="setPill('pedidos','fechado',this)">Fechados</span>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Tipo / Local</th>
+                <th>Cliente</th>
+                <th>Orçamento</th>
+                <th>Urgência</th>
+                <th>Status</th>
+                <th>Acções</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyPedidos"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── PROPOSTAS ── -->
+      <div class="panel" id="panel-propostas">
+        <div class="panel-header"><h2>Propostas Recebidas</h2></div>
+        <div class="table-card">
+          <div class="table-search">
+            <input class="search-input" type="text" placeholder="🔍 Pesquisar...">
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Pedido</th>
+                <th>Engenheiro</th>
+                <th>Valor</th>
+                <th>Prazo</th>
+                <th>Status</th>
+                <th>Acções</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyPropostas"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── ENGENHEIROS ── -->
+      <div class="panel" id="panel-engenheiros">
+        <div class="panel-header"><h2>Engenheiros Registados</h2></div>
+        <div class="table-card">
+          <div class="table-search">
+            <input class="search-input" type="text" placeholder="🔍 Pesquisar engenheiro...">
+            <div class="filter-pills">
+              <span class="pill active">Todos</span>
+              <span class="pill" onclick="setPill('eng','verificado',this)">Verificados</span>
+              <span class="pill" onclick="setPill('eng','pendente',this)">Pendentes</span>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Especialidade</th>
+                <th>Contacto</th>
+                <th>Propostas</th>
+                <th>Status</th>
+                <th>Acções</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyEngenheiros"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── CLIENTES ── -->
+      <div class="panel" id="panel-clientes">
+        <div class="panel-header"><h2>Clientes (Pedidos Publicados)</h2></div>
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Telefone</th>
+                <th>Pedidos</th>
+                <th>Última actividade</th>
+                <th>Acções</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyClientes"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </main>
+
+  <script src="js/config.js"></script>
+  <script>
+    let pedidosData = [], propostasData = [], engsData = [];
+    let filtrosPedido = { texto: '', status: 'todos' };
+
+    function logout() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = 'index.html';
+    }
+
+    function showPanel(id, el) {
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.getElementById(`panel-${id}`).classList.add('active');
+      if (el) el.classList.add('active');
+      document.getElementById('topTitle').textContent = el?.querySelector('span:not(.icon)')?.textContent?.trim() || 'Admin';
+    }
+
+    // Demo data
+    const pedidosDemo = [
+      { id: 'PED-234851', tipo: 'Residencial', local: 'Maputo', nome_cliente: 'A. Machava', urgencia: '3 meses', orcamento_min: 2000000, orcamento_max: 4000000, status: 'aberto', criado_em: '2026-05-19' },
+      { id: 'PED-198732', tipo: 'Comercial', local: 'Matola', nome_cliente: 'J. Nhantumbo', urgencia: '1 mês', orcamento_max: 6000000, status: 'propostas', criado_em: '2026-05-18' },
+      { id: 'PED-301244', tipo: 'Residencial', local: 'Beira', nome_cliente: 'C. Mussagy', urgencia: 'Muito urgente', orcamento_min: 500000, orcamento_max: 1200000, status: 'propostas', criado_em: '2026-05-20' },
+      { id: 'PED-445613', tipo: 'Infra-estrutura', local: 'Nampula', nome_cliente: 'G. Pereira', urgencia: '6 meses', orcamento_min: 5000000, status: 'negociacao', criado_em: '2026-05-17' },
+      { id: 'PED-567821', tipo: 'Educação', local: 'Maputo', nome_cliente: 'F. Sitoe', urgencia: '6 meses', orcamento_min: 8000000, orcamento_max: 15000000, status: 'fechado', criado_em: '2026-05-16' },
+    ];
+    const propostasDemo = [
+      { pedido_id: 'PED-198732', engenheiro: 'Eng. Carlos Matos', valor: 4500000, prazo: '4 meses', status: 'pendente' },
+      { pedido_id: 'PED-198732', engenheiro: 'Eng. Beatriz Lima', valor: 5200000, prazo: '3 meses', status: 'pendente' },
+      { pedido_id: 'PED-301244', engenheiro: 'Eng. Marco Sitoe', valor: 900000, prazo: '2 meses', status: 'aceite' },
+      { pedido_id: 'PED-445613', engenheiro: 'Eng. Carlos Matos', valor: 7000000, prazo: '8 meses', status: 'pendente' },
+    ];
+    const engsDemo = [
+      { nome: 'Carlos Matos', especialidade: 'Eng. Civil', telefone: '87 123 4567', propostas: 2, status: 'verificado' },
+      { nome: 'Beatriz Lima', especialidade: 'Arquitectura', telefone: '84 987 6543', propostas: 1, status: 'verificado' },
+      { nome: 'Marco Sitoe', especialidade: 'Eng. Civil', telefone: '86 555 1234', propostas: 1, status: 'verificado' },
+      { nome: 'Ana Fumo', especialidade: 'Eng. Hidráulica', telefone: '82 444 9876', propostas: 0, status: 'pendente' },
+    ];
+
+    async function carregarDados() {
+      try {
+        const BASE = window.API_BASE || 'http://localhost:3000';
+        const [r1, r2] = await Promise.all([
+          fetch(`${BASE}/api/pedidos`),
+          fetch(`${BASE}/api/propostas`)
+        ]);
+        if (r1.ok) pedidosData = await r1.json(); else throw 0;
+        if (r2.ok) propostasData = await r2.json(); else propostasData = propostasDemo;
+      } catch {
+        pedidosData = pedidosDemo;
+        propostasData = propostasDemo;
+      }
+      engsData = engsDemo;
+      renderAll();
+    }
+
+    function renderAll() {
+      // Stats
+      const abertos = pedidosData.filter(p => p.status === 'aberto').length;
+      document.getElementById('statPedidosAbertos').textContent = abertos;
+      document.getElementById('statPropostas').textContent = propostasData.length;
+      document.getElementById('statFechados').textContent = pedidosData.filter(p => p.status === 'fechado').length;
+      document.getElementById('statEngenheiros').textContent = engsData.filter(e => e.status === 'verificado').length;
+      document.getElementById('badgePedidos').textContent = pedidosData.length;
+      document.getElementById('badgePropostas').textContent = propostasData.filter(p => p.status === 'pendente').length;
+
+      renderRecentes();
+      renderPedidosTab();
+      renderPropostas();
+      renderEngenheiros();
+      renderKanban();
+      renderClientes();
+    }
+
+    function renderRecentes() {
+      const tbody = document.getElementById('tbodyRecentes');
+      tbody.innerHTML = pedidosData.slice(0,5).map(p => `
+        <tr>
+          <td class="td-id">${p.id}</td>
+          <td><strong>${p.tipo}</strong></td>
+          <td>${p.nome_cliente}</td>
+          <td class="td-local">${p.local}</td>
+          <td>${urgBadge(p.urgencia)}</td>
+          <td>${statusBadge(p.status)}</td>
+          <td class="td-actions">
+            <button class="btn-action" onclick="verPedido('${p.id}')">Ver</button>
+            <button class="btn-action success" onclick="moverStatus('${p.id}')">Avançar</button>
+          </td>
+        </tr>`).join('');
+    }
+
+    function renderPedidosTab() {
+      const tbody = document.getElementById('tbodyPedidos');
+      let dados = pedidosData;
+      if (filtrosPedido.status !== 'todos') dados = dados.filter(p => p.status === filtrosPedido.status);
+      if (filtrosPedido.texto) {
+        const q = filtrosPedido.texto.toLowerCase();
+        dados = dados.filter(p => p.id.toLowerCase().includes(q) || p.nome_cliente.toLowerCase().includes(q) || p.local.toLowerCase().includes(q) || p.tipo.toLowerCase().includes(q));
+      }
+      tbody.innerHTML = dados.map(p => {
+        const orc = p.orcamento_min || p.orcamento_max ? `${p.orcamento_min ? fmtMZN(p.orcamento_min) : '?'} – ${p.orcamento_max ? fmtMZN(p.orcamento_max) : '∞'}` : '–';
+        return `<tr>
+          <td class="td-id">${p.id}</td>
+          <td><strong>${p.tipo}</strong><br><span style="font-size:12px;color:#888">${p.local}</span></td>
+          <td>${p.nome_cliente}</td>
+          <td style="font-size:12px">${orc}</td>
+          <td>${urgBadge(p.urgencia)}</td>
+          <td>${statusBadge(p.status)}</td>
+          <td class="td-actions">
+            <button class="btn-action" onclick="verPedido('${p.id}')">Ver</button>
+            <button class="btn-action success" onclick="moverStatus('${p.id}')">→</button>
+            <button class="btn-action danger" onclick="eliminarPedido('${p.id}')">✕</button>
+          </td>
+        </tr>`;}).join('') || `<tr><td colspan="7" style="text-align:center;color:#ccc;padding:2rem">Sem pedidos</td></tr>`;
+    }
+
+    function renderPropostas() {
+      const tbody = document.getElementById('tbodyPropostas');
+      tbody.innerHTML = propostasData.map(p => `
+        <tr>
+          <td class="td-id">${p.pedido_id}</td>
+          <td class="td-nome">${p.engenheiro}</td>
+          <td>${fmtMZN(p.valor)}</td>
+          <td>${p.prazo}</td>
+          <td>${p.status === 'aceite' ? '<span class="status-badge status-aceite">✓ Aceite</span>' : '<span class="status-badge status-pendente">⏳ Pendente</span>'}</td>
+          <td class="td-actions">
+            <button class="btn-action" onclick="verProposta()">Ver</button>
+            ${p.status !== 'aceite' ? '<button class="btn-action success" onclick="aceitarProposta()">Aceitar</button>' : ''}
+          </td>
+        </tr>`).join('');
+    }
+
+    function renderEngenheiros() {
+      const tbody = document.getElementById('tbodyEngenheiros');
+      tbody.innerHTML = engsData.map(e => `
+        <tr>
+          <td class="td-nome">${e.nome}</td>
+          <td>${e.especialidade}</td>
+          <td style="font-size:12px">${e.telefone}</td>
+          <td style="text-align:center">${e.propostas}</td>
+          <td>${e.status === 'verificado' ? '<span class="status-badge status-verificado">✓ Verificado</span>' : '<span class="status-badge status-pendente-ver">⏳ Pendente</span>'}</td>
+          <td class="td-actions">
+            <button class="btn-action">Perfil</button>
+            ${e.status !== 'verificado' ? '<button class="btn-action success" onclick="verificarEng()">Verificar</button>' : ''}
+          </td>
+        </tr>`).join('');
+    }
+
+    function renderKanban() {
+      const cols = { aberto: [], propostas: [], negociacao: [], fechado: [] };
+      pedidosData.forEach(p => { if (cols[p.status]) cols[p.status].push(p); });
+      ['aberto','propostas','negociacao','fechado'].forEach(s => {
+        document.getElementById(`k-${s}`).textContent = cols[s].length;
+        const color = s === 'aberto' ? 'laranja' : s === 'propostas' ? 'amarelo' : s === 'negociacao' ? 'amarelo' : 'verde';
+        document.getElementById(`kanban-${s}`).innerHTML = cols[s].length
+          ? cols[s].map(p => `<div class="kanban-item ${color}">
+              <div class="kanban-item-id">${p.id}</div>
+              <div class="kanban-item-title">${p.tipo}</div>
+              <div class="kanban-item-meta">📍 ${p.local} · ${p.nome_cliente}</div>
+            </div>`).join('')
+          : '<div class="empty-kanban">Sem pedidos</div>';
+      });
+    }
+
+    function renderClientes() {
+      const tbody = document.getElementById('tbodyClientes');
+      const clientes = [...new Set(pedidosData.map(p => p.nome_cliente))];
+      tbody.innerHTML = clientes.map(nome => {
+        const ps = pedidosData.filter(p => p.nome_cliente === nome);
+        const ultimo = ps[ps.length - 1]?.criado_em || '–';
+        return `<tr>
+          <td class="td-nome">${nome}</td>
+          <td style="font-size:12px;color:#888">–</td>
+          <td style="text-align:center">${ps.length}</td>
+          <td style="font-size:12px;color:#888">${ultimo}</td>
+          <td><button class="btn-action">Ver pedidos</button></td>
+        </tr>`;
+      }).join('');
+    }
+
+    function filtrarTabela(tabela, q) {
+      if (tabela === 'pedidos') { filtrosPedido.texto = q; renderPedidosTab(); }
+    }
+
+    function setPill(tabela, status, el) {
+      if (tabela === 'pedidos') {
+        filtrosPedido.status = status;
+        document.querySelectorAll('#pillsPedidos .pill').forEach(p => p.classList.remove('active'));
+        el.classList.add('active');
+        renderPedidosTab();
+      }
+    }
+
+    function statusBadge(s) {
+      const map = { aberto: 'status-aberto', propostas: 'status-propostas', negociacao: 'status-propostas', fechado: 'status-fechado' };
+      const labels = { aberto: '📥 Aberto', propostas: '✏️ Com propostas', negociacao: '🤝 Negociação', fechado: '✅ Fechado' };
+      return `<span class="status-badge ${map[s] || ''}">${labels[s] || s}</span>`;
+    }
+
+    function urgBadge(u) {
+      if (u === 'Muito urgente') return `<span style="color:#D85A30;font-size:12px;font-weight:600">🔴 ${u}</span>`;
+      if (u === '1 mês') return `<span style="color:#B45309;font-size:12px">🟠 ${u}</span>`;
+      return `<span style="font-size:12px;color:#888">${u}</span>`;
+    }
+
+    function fmtMZN(v) { if (!v) return '–'; return `${parseInt(v).toLocaleString('pt-MZ')} MZN`; }
+
+    function verPedido(id) {
+      const p = pedidosData.find(x => x.id === id);
+      if (!p) return;
+      alert(`Pedido ${p.id}\nTipo: ${p.tipo}\nLocal: ${p.local}\nCliente: ${p.nome_cliente}\nUrgência: ${p.urgencia}\nStatus: ${p.status}`);
+    }
+
+    function moverStatus(id) {
+      const p = pedidosData.find(x => x.id === id);
+      if (!p) return;
+      const ordem = ['aberto', 'propostas', 'negociacao', 'fechado'];
+      const idx = ordem.indexOf(p.status);
+      if (idx < ordem.length - 1) { p.status = ordem[idx + 1]; renderAll(); }
+    }
+
+    function eliminarPedido(id) {
+      if (confirm(`Eliminar pedido ${id}?`)) {
+        pedidosData = pedidosData.filter(p => p.id !== id);
+        renderAll();
+      }
+    }
+
+    function verProposta() { alert('Detalhes da proposta (integrar com backend)'); }
+    function aceitarProposta() { alert('Proposta aceite! (integrar com backend)'); }
+    function verificarEng() { alert('Engenheiro verificado! (integrar com backend)'); }
+
+    carregarDados();
+  </script>
+</body>
+</html>

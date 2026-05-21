@@ -29,10 +29,11 @@
   <!-- HERO -->
   <section class="hero">
     <h1>Engenheiros de confiança,<br><span>perto de si</span></h1>
-    <p>Explore projectos reais, veja o trabalho de engenheiros verificados e peça contacto directamente.</p>
+    <p>Explore projectos reais, veja o trabalho de engenheiros verificados e peça servicos directamente.</p>
     <div class="hero-actions">
       <a href="cadastro-engenheiro.html" class="btn-primary">Criar perfil de engenheiro</a>
-      <button class="btn-outline" onclick="abrirModalPedido()">Pedir um serviço</button>
+      <h2>Queres construir? Faca ja o seu pedido!</h2>
+      <button class="btn-outline" onclick="window.location.href='publicar-pedido.html'">Pedir um serviço</button>
     </div>
   </section>
 
@@ -120,33 +121,6 @@
     </div>
   </div>
 
-  <!-- MODAL: Publicar pedido de serviço -->
-  <div class="modal-overlay" id="modalPedido">
-    <div class="modal">
-      <p class="modal-titulo">Publicar pedido de serviço</p>
-      <p class="modal-sub">A OBRAVIA sugere o engenheiro mais próximo e adequado ao seu projecto.</p>
-      <label>O seu nome</label>
-      <input type="text" id="pedidoNome" placeholder="Ex: Fátima Salomão">
-      <label>Localização da obra</label>
-      <input type="text" id="pedidoLocal" placeholder="Ex: Maputo, Zimpeto">
-      <label>Tipo de serviço</label>
-      <select id="pedidoTipo">
-        <option value="">Selecionar...</option>
-        <option>Projecto de construção</option>
-        <option>Fiscalização</option>
-        <option>Avaliação estrutural</option>
-        <option>Topografia</option>
-        <option>Outro</option>
-      </select>
-      <label>Descrição do projecto</label>
-      <textarea id="pedidoDesc" placeholder="Descreva o projecto, prazo, orçamento estimado..."></textarea>
-      <div class="modal-acoes">
-        <button class="btn-cancelar" onclick="fecharModal('modalPedido')">Cancelar</button>
-        <button class="btn-primary" onclick="enviarPedidoServico()">Publicar pedido</button>
-      </div>
-    </div>
-  </div>
-
   <!-- TOAST -->
   <div class="toast" id="toast">
     <div class="toast-icon"></div>
@@ -173,5 +147,26 @@
 
   <script src="js/config.js"></script>
   <script src="js/script.js"></script>
+
+  <script>
+    // ── Hamburger menu ──
+    function toggleMenu() {
+      const links   = document.getElementById('navLinks');
+      const btn     = document.getElementById('hamburgerBtn');
+      const overlay = document.getElementById('menuOverlay');
+      const aberto  = links.classList.toggle('aberto');
+      btn.classList.toggle('ativo', aberto);
+      overlay.classList.toggle('visivel', aberto);
+    }
+    function fecharMenu() {
+      document.getElementById('navLinks').classList.remove('aberto');
+      document.getElementById('hamburgerBtn').classList.remove('ativo');
+      document.getElementById('menuOverlay').classList.remove('visivel');
+    }
+    // Fechar menu ao redimensionar para desktop
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 768) fecharMenu();
+    });
+  </script>
 </body>
 </html>
