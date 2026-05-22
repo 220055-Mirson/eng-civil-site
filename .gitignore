@@ -14,3 +14,6 @@ env.example
 # Logs
 npm-debug.log*
 
+backend/.npmrc
+backend/db.js
+backend/setup-db.sql

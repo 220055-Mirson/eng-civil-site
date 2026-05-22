@@ -7,6 +7,35 @@
   <title>OBRAVIA — Plataforma de Engenheiros</title>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* Notificações */
+    .btn-notificacoes {
+      background: var(--laranja) !important;
+      color: white !important;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px !important;
+      font-weight: 600 !important;
+      display: inline-flex !important;
+      align-items: center;
+      gap: 6px;
+      position: relative;
+    }
+    .notif-badge {
+      background: white;
+      color: var(--laranja);
+      border-radius: 10px;
+      padding: 1px 7px;
+      font-size: 11px;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+    }
+    @keyframes fadeDown {
+      from { opacity:0; transform:translateY(-8px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+  </style>
 </head>
 <body>
 
@@ -17,10 +46,9 @@
         <img src="img/OBRAVIA.jpeg" alt="Logo OBRAVIA">
       </div>
       <div class="welcomen-user" id="bemVindo">Bem-vindo</div>
-      <ul class="nav-links"> 
-      <li><a href="#" id="addProjectBtn" class="btn-add-project" onclick="abrirModalLoginProjetos(); return false;">Adicionar Projetos</a></li>
+      <ul class="nav-links" id="navLinks">
+        <!-- itens injectados por atualizarNavbar() -->
         <li><a href="sobre.html" class="btn-sobre">Sobre</a></li>
-        <li><a href="admin.html" class="btn-admin">Admin</a></li>
         <li><a href="#" class="btn-sair" onclick="logout()">Sair</a></li>
       </ul>
     </div>
@@ -29,10 +57,9 @@
   <!-- HERO -->
   <section class="hero">
     <h1>Engenheiros de confiança,<br><span>perto de si</span></h1>
-    <p>Explore projectos reais, veja o trabalho de engenheiros verificados e peça servicos directamente.</p>
+    <p>Explore projectos reais, veja o trabalho de engenheiros verificados e peça contacto directamente.</p>
     <div class="hero-actions">
       <a href="cadastro-engenheiro.html" class="btn-primary">Criar perfil de engenheiro</a>
-      <h2>Queres construir? Faca ja o seu pedido!</h2>
       <button class="btn-outline" onclick="window.location.href='publicar-pedido.html'">Pedir um serviço</button>
     </div>
   </section>
@@ -147,26 +174,5 @@
 
   <script src="js/config.js"></script>
   <script src="js/script.js"></script>
-
-  <script>
-    // ── Hamburger menu ──
-    function toggleMenu() {
-      const links   = document.getElementById('navLinks');
-      const btn     = document.getElementById('hamburgerBtn');
-      const overlay = document.getElementById('menuOverlay');
-      const aberto  = links.classList.toggle('aberto');
-      btn.classList.toggle('ativo', aberto);
-      overlay.classList.toggle('visivel', aberto);
-    }
-    function fecharMenu() {
-      document.getElementById('navLinks').classList.remove('aberto');
-      document.getElementById('hamburgerBtn').classList.remove('ativo');
-      document.getElementById('menuOverlay').classList.remove('visivel');
-    }
-    // Fechar menu ao redimensionar para desktop
-    window.addEventListener('resize', () => {
-      if (window.innerWidth > 768) fecharMenu();
-    });
-  </script>
 </body>
 </html>

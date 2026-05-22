@@ -173,17 +173,70 @@ function tempoRelativo(iso) {
 
 // ── AUTH E WELCOME ──
 function atualizarWelcome() {
-  const nome = localStorage.getItem("usuarioLogado");
-  const bemVindo = document.getElementById("bemVindo");
-  const menuAdmin = document.getElementById("menuAdmin");
-  
-  if (nome) {
-    bemVindo.innerText = `Bem-vindo, ${nome}`;
-    // Verificar se o usuário é cadastrado para mostrar o botão Admin
-    verificarCadastroAdmin(nome, menuAdmin);
+  const nome    = localStorage.getItem('usuarioLogado');
+  const bemVindo = document.getElementById('bemVindo');
+  if (bemVindo) bemVindo.innerText = nome ? `Bem-vindo, ${nome}` : 'Bem-vindo, Visitante';
+  atualizarNavbar();
+}
+
+function atualizarNavbar() {
+  const navLinks = document.getElementById('navLinks');
+  if (!navLinks) return;
+
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const tipo = user.tipo || user.role || '';
+  const tiposEng = ['senior', 'junior', 'empresa'];
+  const isEng    = tiposEng.includes(tipo);
+  const isAdmin  = tipo === 'admin' || user.email === 'admin@obravia.com';
+  const logado   = !!user.id;
+
+  // Limpar itens dinâmicos (manter Sobre e Sair que estão no HTML)
+  navLinks.querySelectorAll('.item-dinamico').forEach(el => el.remove());
+
+  const inserirAntesSobre = (html) => {
+    const sobre = navLinks.querySelector('.btn-sobre')?.parentElement;
+    if (sobre) sobre.insertAdjacentHTML('beforebegin', html);
+  };
+
+  if (!logado) {
+    // Visitante: apenas Sobre + botão Entrar
+    inserirAntesSobre('<li class="item-dinamico"><a href="login.html" class="btn-add-project">Entrar</a></li>');
+    return;
+  }
+
+  if (isAdmin) {
+    inserirAntesSobre('<li class="item-dinamico"><a href="admin.html" class="btn-admin">Admin</a></li>');
+    return;
+  }
+
+  if (isEng) {
+    // Engenheiro: Adicionar Projecto + Ver Pedidos + Chat
+    inserirAntesSobre(`
+      <li class="item-dinamico"><a href="#" class="btn-add-project" onclick="abrirModalLoginProjetos(); return false;">Adicionar Projecto</a></li>
+      <li class="item-dinamico"><a href="painel-engenheiro.html" class="btn-add-project" style="background:#3B6D11">Ver Pedidos</a></li>
+      <li class="item-dinamico">
+        <a href="#" class="btn-notificacoes" id="btnNotif" onclick="toggleChat(event)">
+          💬 Mensagens <span class="notif-badge" id="notifBadge" style="display:none">0</span>
+        </a>
+      </li>
+    `);
+    carregarBadgeChat();
   } else {
-    bemVindo.innerText = `Bem-vindo, Visitante`;
-    if (menuAdmin) menuAdmin.style.display = "none";
+    // Cliente: Notificações de propostas + Chat
+    inserirAntesSobre(`
+      <li class="item-dinamico">
+        <a href="#" class="btn-notificacoes" id="btnNotifPropostas" onclick="toggleNotificacoes(event)">
+          🔔 Notificacoes <span class="notif-badge" id="notifBadge" style="display:none">0</span>
+        </a>
+      </li>
+      <li class="item-dinamico">
+        <a href="#" class="btn-notificacoes" id="btnNotif" onclick="toggleChat(event)" style="background:#3B6D11">
+          💬 Mensagens <span class="notif-badge" id="chatBadge" style="display:none">0</span>
+        </a>
+      </li>
+    `);
+    carregarNotificacoes();
+    carregarBadgeChat();
   }
 }
 
@@ -210,6 +263,306 @@ async function verificarCadastroAdmin(username, menuAdmin) {
   }
 }
 
+// ── NOTIFICAÇÕES (propostas recebidas pelo cliente) ──
+let notifAberto = false;
+
+async function carregarNotificacoes() {
+  const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+  if (!token) return;
+  try {
+    const res = await fetch(`${API_URL}/meus-pedidos`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) return;
+    const pedidos = await res.json();
+
+    // Para cada pedido, buscar propostas
+    const todasPropostas = [];
+    for (const p of pedidos) {
+      const r2 = await fetch(`${API_URL}/pedidos/${p.id}/propostas`);
+      if (r2.ok) {
+        const props = await r2.json();
+        props.forEach(pr => todasPropostas.push({ ...pr, pedido_tipo: p.tipo, pedido_local: p.local, pedido_codigo: p.codigo }));
+      }
+    }
+
+    const badge = document.getElementById('notifBadge');
+    if (badge) {
+      const pendentes = todasPropostas.filter(p => p.status === 'pendente').length;
+      badge.textContent = pendentes;
+      badge.style.display = pendentes > 0 ? 'inline-flex' : 'none';
+    }
+    window._notificacoes = todasPropostas;
+  } catch (e) { console.error('Erro notificações:', e); }
+}
+
+function toggleNotificacoes(e) {
+  e.preventDefault();
+  const existente = document.getElementById('painelNotif');
+  if (existente) { existente.remove(); notifAberto = false; return; }
+  notifAberto = true;
+  renderPainelNotificacoes();
+}
+
+function renderPainelNotificacoes() {
+  const existente = document.getElementById('painelNotif');
+  if (existente) existente.remove();
+
+  const propostas = window._notificacoes || [];
+  const itens = propostas.length
+    ? propostas.map(p => `
+        <div style="padding:12px 16px;border-bottom:1px solid #F1EFE8;">
+          <div style="font-size:11px;color:#aaa;font-family:monospace">${p.pedido_codigo || 'PED-?'}</div>
+          <div style="font-weight:700;font-size:13px;margin:2px 0">${p.pedido_tipo} · ${p.pedido_local}</div>
+          <div style="font-size:12px;color:#666">👷 ${p.engenheiro_nome}</div>
+          <div style="font-size:13px;color:#3B6D11;font-weight:600;margin-top:4px">${p.valor ? Number(p.valor).toLocaleString('pt-MZ') + ' MZN' : 'Valor não definido'} · ${p.prazo || '–'}</div>
+          <div style="font-size:12px;color:#888;margin-top:2px">${p.descricao ? p.descricao.substring(0,80)+'...' : ''}</div>
+          <div style="margin-top:8px;display:flex;gap:6px">
+            <button onclick="aceitarProposta(${p.id})" style="background:#3B6D11;color:white;border:none;padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">✓ Aceitar</button>
+            <button onclick="rejeitarProposta(${p.id})" style="background:#FEF2F2;color:#DC2626;border:1px solid #FECACA;padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">✕ Rejeitar</button>
+          </div>
+        </div>`).join('')
+    : '<div style="padding:2rem;text-align:center;color:#bbb;font-size:13px">Ainda não recebeu propostas.</div>';
+
+  const painel = document.createElement('div');
+  painel.id = 'painelNotif';
+  painel.style.cssText = `
+    position:fixed; top:80px; right:1.5rem;
+    width:340px; max-height:480px;
+    background:white; border-radius:14px;
+    border:1.5px solid #D3D1C7;
+    box-shadow:0 16px 48px rgba(0,0,0,0.15);
+    overflow:hidden; z-index:500;
+    animation:fadeDown .2s ease;
+  `;
+  painel.innerHTML = `
+    <div style="padding:14px 16px;border-bottom:1px solid #F1EFE8;display:flex;align-items:center;justify-content:space-between;background:#FAFAF7">
+      <span style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800">🔔 Propostas Recebidas</span>
+      <button onclick="document.getElementById('painelNotif').remove()" style="background:none;border:none;cursor:pointer;font-size:1.1rem;color:#aaa">✕</button>
+    </div>
+    <div style="overflow-y:auto;max-height:400px">${itens}</div>
+  `;
+  document.body.appendChild(painel);
+
+  // Fechar ao clicar fora
+  setTimeout(() => {
+    document.addEventListener('click', function fecharFora(ev) {
+      const p = document.getElementById('painelNotif');
+      const btn = document.getElementById('btnNotif');
+      if (p && !p.contains(ev.target) && btn && !btn.contains(ev.target)) {
+        p.remove();
+        document.removeEventListener('click', fecharFora);
+      }
+    });
+  }, 100);
+}
+
+async function aceitarProposta(id) {
+  const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+  try {
+    await fetch(`${API_URL}/propostas/${id}/aceitar`, {
+      method: 'PATCH', headers: { 'Authorization': `Bearer ${token}` }
+    });
+    mostrarToast('✅ Proposta aceite! O engenheiro será notificado.');
+    document.getElementById('painelNotif')?.remove();
+    carregarNotificacoes();
+  } catch(e) { mostrarToast('Erro ao aceitar proposta.'); }
+}
+
+async function rejeitarProposta(id) {
+  const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+  try {
+    await fetch(`${API_URL}/propostas/${id}/rejeitar`, {
+      method: 'PATCH', headers: { 'Authorization': `Bearer ${token}` }
+    });
+    mostrarToast('Proposta rejeitada.');
+    document.getElementById('painelNotif')?.remove();
+    carregarNotificacoes();
+  } catch(e) { mostrarToast('Erro ao rejeitar proposta.'); }
+}
+
+// ════════════════════════════════════════════
+//  CHAT INTERNO
+// ════════════════════════════════════════════
+
+let chatAberto = false;
+let conversaAtiva = null;
+let pollingInterval = null;
+
+async function carregarBadgeChat() {
+  const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+  if (!token) return;
+  try {
+    const res = await fetch(`${API_URL}/chat/nao-lidas`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) return;
+    const { total } = await res.json();
+    ['notifBadge','chatBadge'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.textContent = total; el.style.display = total > 0 ? 'inline-flex' : 'none'; }
+    });
+  } catch(e) {}
+}
+
+async function toggleChat(e) {
+  e.preventDefault();
+  const existente = document.getElementById('painelChat');
+  if (existente) {
+    existente.remove();
+    clearInterval(pollingInterval);
+    conversaAtiva = null;
+    return;
+  }
+  abrirPainelChat();
+}
+
+async function abrirPainelChat() {
+  const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+  if (!token) return;
+
+  const painel = document.createElement('div');
+  painel.id = 'painelChat';
+  painel.style.cssText = `
+    position:fixed; top:80px; right:1.5rem;
+    width:380px; height:520px;
+    background:white; border-radius:16px;
+    border:1.5px solid #D3D1C7;
+    box-shadow:0 20px 60px rgba(0,0,0,0.18);
+    z-index:500; display:flex; flex-direction:column;
+    overflow:hidden; animation:fadeDown .2s ease;
+    font-family:'DM Sans',sans-serif;
+  `;
+  painel.innerHTML = `
+    <div id="chatHeader" style="padding:14px 16px;background:#444441;color:white;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+      <span style="font-family:'Syne',sans-serif;font-weight:800;font-size:14px">💬 Mensagens</span>
+      <button onclick="document.getElementById('painelChat').remove(); clearInterval(pollingInterval);" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.7);font-size:1.1rem">✕</button>
+    </div>
+    <div id="chatBody" style="flex:1;overflow:hidden;display:flex;flex-direction:column">
+      <div id="listaConversas" style="flex:1;overflow-y:auto"></div>
+    </div>
+  `;
+  document.body.appendChild(painel);
+  await carregarConversas();
+}
+
+async function carregarConversas() {
+  const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+  const lista = document.getElementById('listaConversas');
+  if (!lista) return;
+
+  lista.innerHTML = '<div style="padding:1rem;text-align:center;color:#bbb;font-size:13px">A carregar...</div>';
+
+  try {
+    const res = await fetch(`${API_URL}/chat/conversas`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const conversas = await res.json();
+
+    if (!conversas.length) {
+      lista.innerHTML = '<div style="padding:2rem;text-align:center;color:#bbb;font-size:13px">Sem conversas ainda.<br>As conversas aparecem quando uma proposta é aceite.</div>';
+      return;
+    }
+
+    lista.innerHTML = conversas.map(c => `
+      <div onclick="abrirConversa(${c.proposta_id})" style="padding:14px 16px;border-bottom:1px solid #F1EFE8;cursor:pointer;transition:background .15s;display:flex;gap:12px;align-items:flex-start" onmouseover="this.style.background='#FAFAF7'" onmouseout="this.style.background='white'">
+        <div style="width:40px;height:40px;border-radius:50%;background:#FAECE7;color:#D85A30;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0">
+          ${c.pedido_tipo?.[0] || '🏗'}
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
+            <span style="font-weight:700;font-size:13px">${c.pedido_tipo} · ${c.pedido_local}</span>
+            ${c.nao_lidas > 0 ? `<span style="background:#D85A30;color:white;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:700">${c.nao_lidas}</span>` : ''}
+          </div>
+          <div style="font-size:12px;color:#888;margin-bottom:2px">${c.engenheiro_nome || c.nome_cliente || ''}</div>
+          <div style="font-size:12px;color:#aaa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.ultima_msg || 'Sem mensagens ainda — inicie a conversa'}</div>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {
+    lista.innerHTML = '<div style="padding:1rem;text-align:center;color:#bbb;font-size:13px">Erro ao carregar conversas.</div>';
+  }
+}
+
+async function abrirConversa(propostaId) {
+  conversaAtiva = propostaId;
+  const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+  const user  = JSON.parse(localStorage.getItem('user') || '{}');
+
+  const chatBody = document.getElementById('chatBody');
+  if (!chatBody) return;
+
+  chatBody.innerHTML = `
+    <div style="padding:10px 14px;background:#FAFAF7;border-bottom:1px solid #F1EFE8;display:flex;align-items:center;gap:8px;flex-shrink:0">
+      <button onclick="conversaAtiva=null; carregarConversas(); clearInterval(pollingInterval);" style="background:none;border:none;cursor:pointer;font-size:1rem;color:#888">←</button>
+      <span style="font-size:13px;font-weight:700" id="chatTitulo">Conversa</span>
+    </div>
+    <div id="chatMensagens" style="flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px"></div>
+    <div style="padding:10px 12px;border-top:1px solid #F1EFE8;display:flex;gap:8px;flex-shrink:0">
+      <input id="inputMsg" type="text" placeholder="Escreva uma mensagem..." maxlength="500"
+        style="flex:1;padding:10px 13px;border:1.5px solid #D3D1C7;border-radius:8px;font-size:13px;outline:none;font-family:'DM Sans',sans-serif"
+        onkeydown="if(event.key==='Enter') enviarMsg(${propostaId})"
+        onfocus="this.style.borderColor='#D85A30'" onblur="this.style.borderColor='#D3D1C7'">
+      <button onclick="enviarMsg(${propostaId})" style="background:#D85A30;color:white;border:none;border-radius:8px;padding:10px 16px;cursor:pointer;font-size:1rem">➤</button>
+    </div>
+  `;
+
+  await renderMensagens(propostaId, user.id);
+
+  // Polling a cada 3 segundos
+  clearInterval(pollingInterval);
+  pollingInterval = setInterval(() => renderMensagens(propostaId, user.id), 3000);
+}
+
+async function renderMensagens(propostaId, meuId) {
+  const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+  const container = document.getElementById('chatMensagens');
+  if (!container) { clearInterval(pollingInterval); return; }
+
+  try {
+    const res = await fetch(`${API_URL}/chat/${propostaId}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const msgs = await res.json();
+    const eraNoFundo = container.scrollTop + container.clientHeight >= container.scrollHeight - 10;
+
+    container.innerHTML = msgs.length
+      ? msgs.map(m => {
+          const minha = m.remetente_id === meuId;
+          const hora  = new Date(m.enviada_em).toLocaleTimeString('pt', { hour:'2-digit', minute:'2-digit' });
+          return `
+            <div style="display:flex;flex-direction:column;align-items:${minha?'flex-end':'flex-start'}">
+              ${!minha ? `<span style="font-size:10px;color:#aaa;margin-bottom:2px;padding-left:4px">${m.remetente_nome}</span>` : ''}
+              <div style="max-width:78%;padding:9px 13px;border-radius:${minha?'14px 14px 4px 14px':'14px 14px 14px 4px'};background:${minha?'#D85A30':'#F1EFE8'};color:${minha?'white':'#444441'};font-size:13px;line-height:1.4">
+                ${m.conteudo}
+              </div>
+              <span style="font-size:10px;color:#ccc;margin-top:2px;padding:0 4px">${hora}</span>
+            </div>`;
+        }).join('')
+      : '<div style="text-align:center;color:#ccc;font-size:12px;padding:2rem">Sem mensagens. Diga olá! 👋</div>';
+
+    if (eraNoFundo) container.scrollTop = container.scrollHeight;
+    carregarBadgeChat();
+  } catch(e) {}
+}
+
+async function enviarMsg(propostaId) {
+  const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+  const input = document.getElementById('inputMsg');
+  const texto = input?.value.trim();
+  if (!texto) return;
+  input.value = '';
+  try {
+    await fetch(`${API_URL}/chat/${propostaId}`, {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${token}` },
+      body: JSON.stringify({ conteudo: texto })
+    });
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    await renderMensagens(propostaId, user.id);
+  } catch(e) {}
+}
+
 function logout() {
   const token = localStorage.getItem("authToken");
   
@@ -221,10 +574,12 @@ function logout() {
     }).catch(console.error);
   }
   
-  localStorage.removeItem("usuarioLogado");
-  localStorage.removeItem("authToken");
-  localStorage.removeItem("role");
-  window.location.href = "login.html";
+  localStorage.removeItem('usuarioLogado');
+  localStorage.removeItem('authToken');
+  localStorage.removeItem('token');
+  localStorage.removeItem('role');
+  localStorage.removeItem('user');
+  window.location.href = 'login.html';
 }
 
 // ── MODAIS EXISTENTES ──
@@ -318,14 +673,23 @@ async function verificarEngenheiro() {
     if (result.success) {
       // Salvar dados do usuário
       localStorage.setItem('authToken', result.token);
+      localStorage.setItem('token', result.token);
       localStorage.setItem('usuarioLogado', result.user.nome);
       localStorage.setItem('role', result.user.role);
-      
+      localStorage.setItem('user', JSON.stringify(result.user));
+
       mostrarToast(`✅ Bem-vindo, ${result.user.nome}! Redirecionando...`);
-      
       fecharModal('modalLoginProjetos');
+
+      // Redirecionar conforme o tipo de utilizador
+      const tipo = result.user.tipo || result.user.role;
+      const engenheiros = ['senior', 'junior', 'empresa'];
+      const destino = engenheiros.includes(tipo)
+        ? 'painel-engenheiro.html'
+        : 'publicar-projeto.html';
+
       setTimeout(() => {
-        window.location.href = 'publicar-projeto.html';
+        window.location.href = destino;
       }, 1500);
     } else {
       if (errorDiv) {
