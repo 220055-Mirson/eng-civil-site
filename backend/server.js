@@ -1,4 +1,7 @@
-require('dotenv').config();
+// ============================================================
+//  OBRAVIA — server.js  (PostgreSQL + novo fluxo pedidos)
+// ============================================================
+
 const express = require('express');
 const multer  = require('multer');
 const path    = require('path');
@@ -143,6 +146,30 @@ app.post('/api/cadastro/junior',
         }
     }
 );
+
+// Cliente
+app.post('/api/cadastro/cliente', async (req, res) => {
+    try {
+        const { nome, email, senha } = req.body;
+        if (!nome || !email || !senha)
+            return erro(res, 400, 'Nome, email e senha são obrigatórios');
+        if (senha.length < 6)
+            return erro(res, 400, 'A senha deve ter pelo menos 6 caracteres');
+
+        // Verificar se email já existe
+        const existe = await db.buscarUsuarioPorEmail(email);
+        if (existe) return erro(res, 409, 'Este email já está registado');
+
+        const id = await db.cadastrarCliente({ nome, email, senha });
+
+        // Login automático após cadastro
+        const result = await db.login(email, senha);
+        res.status(201).json({ success: true, id, token: result.token, user: result.user });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: e.message });
+    }
+});
 
 // ════════════════════════════════════════════
 //  AUTENTICAÇÃO
@@ -469,6 +496,52 @@ app.delete('/api/admin/pedidos/:id', autenticar, apenasAdmin, async (req, res) =
     try {
         await db.eliminarPedido(req.params.id);
         res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ════════════════════════════════════════════
+//  CHAT / MENSAGENS
+// ════════════════════════════════════════════
+
+// Conversas do utilizador (propostas aceites com chat)
+app.get('/api/chat/conversas', autenticar, async (req, res) => {
+    try {
+        const tiposEng = ['senior', 'junior', 'empresa'];
+        const tipo = tiposEng.includes(req.usuario.tipo) ? 'engenheiro' : 'cliente';
+        const conversas = await db.propostasComChat(req.usuario.id, tipo);
+        res.json(conversas);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Mensagens de uma conversa (proposta)
+app.get('/api/chat/:proposta_id', autenticar, async (req, res) => {
+    try {
+        const msgs = await db.listarMensagens(req.params.proposta_id);
+        await db.marcarLidas(req.params.proposta_id, req.usuario.id);
+        res.json(msgs);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Enviar mensagem
+app.post('/api/chat/:proposta_id', autenticar, async (req, res) => {
+    try {
+        const { conteudo } = req.body;
+        if (!conteudo?.trim()) return erro(res, 400, 'Mensagem vazia');
+        const id = await db.enviarMensagem({
+            proposta_id:    req.params.proposta_id,
+            remetente_id:   req.usuario.id,
+            remetente_nome: req.usuario.nome,
+            conteudo:       conteudo.trim()
+        });
+        res.status(201).json({ success: true, id });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Contagem de não lidas (para badge)
+app.get('/api/chat/nao-lidas', autenticar, async (req, res) => {
+    try {
+        const total = await db.contarNaoLidas(req.usuario.id);
+        res.json({ total });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
