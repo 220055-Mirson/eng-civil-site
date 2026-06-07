@@ -5,8 +5,7 @@ node_modules/
 public/uploads/
 uploads/
 
-# Banco de dados
-*.db
+
 
 # Variáveis de ambiente
 .env
@@ -15,5 +14,4 @@ env.example
 npm-debug.log*
 
 backend/.npmrc
-backend/db.js
 backend/setup-db.sql
