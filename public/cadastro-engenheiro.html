@@ -6,8 +6,96 @@
   <title>OBRAVIA — Verificação em 3 Níveis | Cadastro Profissional</title>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style-cadastro.css">
+  <style>
+    /* ── Link de login no topo ── */
+    .login-bar {
+      background: #F1EFE8;
+      border-bottom: 1px solid #D3D1C7;
+      padding: 10px 2rem;
+      text-align: right;
+      font-size: 13px;
+      color: #666;
+    }
+    .login-bar a {
+      color: #D85A30;
+      font-weight: 700;
+      text-decoration: none;
+      margin-left: 4px;
+    }
+    .login-bar a:hover { text-decoration: underline; }
+
+    /* ── Banner de conta já existente ── */
+    .ja-tem-conta-banner {
+      background: #FAECE7;
+      border: 1.5px solid rgba(216,90,48,0.25);
+      border-radius: 12px;
+      padding: 1rem 1.5rem;
+      margin: 1.5rem auto;
+      max-width: 900px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .ja-tem-conta-banner p {
+      font-size: 14px;
+      color: #444441;
+      margin: 0;
+    }
+    .ja-tem-conta-banner p strong { color: #D85A30; }
+    .btn-ir-login {
+      background: #D85A30;
+      color: white;
+      border: none;
+      padding: 9px 22px;
+      border-radius: 8px;
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+    .btn-ir-login:hover { background: #993C1D; }
+
+    /* ── Nota no rodapé dos modais ── */
+    .modal-login-note {
+      text-align: center;
+      margin-top: 1.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid #F1EFE8;
+      font-size: 13px;
+      color: #999;
+    }
+    .modal-login-note a {
+      color: #D85A30;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .modal-login-note a:hover { text-decoration: underline; }
+
+    /* ── Nota de aprovação ── */
+    .aprovacao-note {
+      background: #EAF3DE;
+      border: 1px solid rgba(59,109,17,0.25);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: #3B6D11;
+      margin-top: 1rem;
+      line-height: 1.5;
+    }
+  </style>
 </head>
 <body>
+
+<!-- BARRA DE LOGIN NO TOPO -->
+<div class="login-bar">
+  Já tem conta de engenheiro?
+  <a href="login.html">Entrar agora →</a>
+</div>
 
 <header class="header">
   <div class="header-inner">
@@ -15,12 +103,19 @@
       <h1>OBRAVIA<span> Verificação</span></h1>
     </div>
     <div class="back-link">
-      <a href="index.html">← Voltar para página inicial</a>
+      <a href="welcome.html">← Voltar</a>
     </div>
   </div>
 </header>
 
 <div class="container">
+
+  <!-- BANNER "JÁ TEM CONTA" -->
+  <div class="ja-tem-conta-banner">
+    <p>🔑 <strong>Já se registou anteriormente?</strong> Não precisa de criar nova conta — entre directamente com o seu email e senha.</p>
+    <a href="login.html" class="btn-ir-login">Entrar na minha conta</a>
+  </div>
+
   <div class="page-hero">
     <h1>Verificação em 3 Níveis</h1>
     <p>Sistema de credenciamento para garantir qualidade e confiança em cada projeto</p>
@@ -169,7 +264,13 @@
         <div id="nuitNome" class="file-name"></div>
       </div>
       <button type="button" class="btn-submit" onclick="enviarCadastro('empresa')">Enviar para Verificação</button>
+      <div class="aprovacao-note">
+        ⏳ Após o envio, a OBRAVIA irá verificar os documentos. Receberá acesso à plataforma assim que a aprovação for concluída.
+      </div>
     </form>
+    <div class="modal-login-note">
+      Já tem conta? <a href="login.html">Entrar agora →</a>
+    </div>
   </div>
 </div>
 
@@ -235,7 +336,13 @@
         </select>
       </div>
       <button type="button" class="btn-submit" onclick="enviarCadastro('senior')">Verificar na Ordem</button>
+      <div class="aprovacao-note">
+        ⏳ O seu pedido será analisado pelo administrador da OBRAVIA. Receberá acesso após aprovação.
+      </div>
     </form>
+    <div class="modal-login-note">
+      Já tem conta? <a href="login.html">Entrar agora →</a>
+    </div>
   </div>
 </div>
 
@@ -303,7 +410,13 @@
         <input type="url" id="juniorLinkedin" placeholder="https://linkedin.com/in/seu-perfil">
       </div>
       <button type="button" class="btn-submit" onclick="enviarCadastro('junior')">Cadastrar como Júnior</button>
+      <div class="aprovacao-note">
+        ⏳ O seu pedido será analisado pelo administrador da OBRAVIA. Receberá acesso após aprovação.
+      </div>
     </form>
+    <div class="modal-login-note">
+      Já tem conta? <a href="login.html">Entrar agora →</a>
+    </div>
   </div>
 </div>
 

@@ -547,20 +547,41 @@
       { nome: 'Ana Fumo', especialidade: 'Eng. Hidráulica', telefone: '82 444 9876', propostas: 0, status: 'pendente' },
     ];
 
+    const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+    const BASE   = window.API_BASE || 'http://localhost:3000';
+
     async function carregarDados() {
+      const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
       try {
-        const BASE = window.API_BASE || 'http://localhost:3000';
-        const [r1, r2] = await Promise.all([
+        const [r1, r2, r3] = await Promise.all([
           fetch(`${BASE}/api/pedidos`),
-          fetch(`${BASE}/api/propostas`)
+          fetch(`${BASE}/api/propostas`, { headers }),
+          fetch(`${BASE}/api/admin/usuarios`, { headers })
         ]);
-        if (r1.ok) pedidosData = await r1.json(); else throw 0;
-        if (r2.ok) propostasData = await r2.json(); else propostasData = propostasDemo;
-      } catch {
-        pedidosData = pedidosDemo;
+        pedidosData   = r1.ok ? await r1.json() : pedidosDemo;
+        propostasData = r2.ok ? await r2.json() : propostasDemo;
+        if (r3.ok) {
+          const todos = await r3.json();
+          // Filtrar só engenheiros/empresas
+          engsData = todos
+            .filter(u => ['senior','junior','empresa'].includes(u.tipo) || ['senior','junior','empresa'].includes(u.role))
+            .map(u => ({
+              id:           u.id,
+              nome:         u.nome,
+              email:        u.email,
+              especialidade: u.tipo === 'empresa' ? 'Empresa' : u.tipo === 'senior' ? 'Eng. Sénior' : 'Eng. Júnior',
+              telefone:     u.telefone || '—',
+              propostas:    0,
+              status:       u.status === 'aprovado' ? 'verificado' : 'pendente'
+            }));
+        } else {
+          engsData = engsDemo;
+        }
+      } catch(e) {
+        pedidosData   = pedidosDemo;
         propostasData = propostasDemo;
+        engsData      = engsDemo;
       }
-      engsData = engsDemo;
       renderAll();
     }
 
@@ -642,16 +663,24 @@
 
     function renderEngenheiros() {
       const tbody = document.getElementById('tbodyEngenheiros');
+      if (!engsData.length) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#ccc;padding:2rem">Sem engenheiros registados</td></tr>';
+        return;
+      }
       tbody.innerHTML = engsData.map(e => `
-        <tr>
-          <td class="td-nome">${e.nome}</td>
+        <tr id="eng-row-${e.id}">
+          <td class="td-nome">${e.nome}<br><span style="font-size:11px;color:#aaa">${e.email || ''}</span></td>
           <td>${e.especialidade}</td>
           <td style="font-size:12px">${e.telefone}</td>
           <td style="text-align:center">${e.propostas}</td>
-          <td>${e.status === 'verificado' ? '<span class="status-badge status-verificado">✓ Verificado</span>' : '<span class="status-badge status-pendente-ver">⏳ Pendente</span>'}</td>
+          <td>${e.status === 'verificado'
+            ? '<span class="status-badge status-verificado">✓ Verificado</span>'
+            : '<span class="status-badge status-pendente-ver">⏳ Pendente</span>'}</td>
           <td class="td-actions">
-            <button class="btn-action">Perfil</button>
-            ${e.status !== 'verificado' ? '<button class="btn-action success" onclick="verificarEng()">Verificar</button>' : ''}
+            ${e.status !== 'verificado'
+              ? `<button class="btn-action success" onclick="verificarEng(${e.id})">✓ Aprovar</button>
+                 <button class="btn-action danger" onclick="rejeitarEng(${e.id})">✕ Rejeitar</button>`
+              : '<span style="font-size:11px;color:#aaa">✓ Aprovado</span>'}
           </td>
         </tr>`).join('');
     }
@@ -738,7 +767,56 @@
 
     function verProposta() { alert('Detalhes da proposta (integrar com backend)'); }
     function aceitarProposta() { alert('Proposta aceite! (integrar com backend)'); }
-    function verificarEng() { alert('Engenheiro verificado! (integrar com backend)'); }
+    async function verificarEng(id) {
+      if (!confirm('Aprovar este engenheiro? Ele terá acesso total à plataforma.')) return;
+      try {
+        const res = await fetch(`${BASE}/api/admin/usuarios/${id}/aprovar`, {
+          method: 'PUT',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error();
+        // Actualizar localmente
+        const eng = engsData.find(e => e.id === id);
+        if (eng) eng.status = 'verificado';
+        renderEngenheiros();
+        // Actualizar stat
+        document.getElementById('statEngenheiros').textContent =
+          engsData.filter(e => e.status === 'verificado').length;
+        mostrarToast('✅ Engenheiro aprovado com sucesso!');
+      } catch(e) {
+        mostrarToast('❌ Erro ao aprovar. Verifique a ligação.');
+      }
+    }
+
+    async function rejeitarEng(id) {
+      if (!confirm('Rejeitar e eliminar este engenheiro? Esta acção é irreversível.')) return;
+      try {
+        const res = await fetch(`${BASE}/api/admin/usuarios/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error();
+        engsData = engsData.filter(e => e.id !== id);
+        renderEngenheiros();
+        mostrarToast('Engenheiro rejeitado e removido.');
+      } catch(e) {
+        mostrarToast('❌ Erro ao rejeitar. Verifique a ligação.');
+      }
+    }
+
+    function mostrarToast(msg) {
+      let t = document.getElementById('adminToast');
+      if (!t) {
+        t = document.createElement('div');
+        t.id = 'adminToast';
+        t.style.cssText = 'position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:#444441;color:white;padding:12px 22px;border-radius:10px;font-size:13px;font-weight:600;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.2);transition:opacity .3s';
+        document.body.appendChild(t);
+      }
+      t.textContent = msg;
+      t.style.opacity = '1';
+      clearTimeout(t._to);
+      t._to = setTimeout(() => t.style.opacity = '0', 3000);
+    }
 
     carregarDados();
   </script>

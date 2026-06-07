@@ -108,7 +108,7 @@ function exibirProjetos() {
             ${tags.slice(0, 3).map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('')}
           </div>
           <div class="card-acoes">
-            <button class="btn-contacto" onclick="abrirModalContacto('${escapeHtml(projeto.engenheiro_nome || projeto.engenheiro || 'Engenheiro')}')">Pedir contacto</button>
+            <button class="btn-contacto" onclick="abrirModalContacto('${escapeHtml(projeto.engenheiro_nome || projeto.engenheiro || 'Engenheiro')}', ${projeto.usuario_id || 0}, ${projeto.id})">Pedir contacto</button>
             <button class="btn-ver" onclick="verDetalhes(${projeto.id})">Ver</button>
           </div>
         </div>
@@ -198,11 +198,18 @@ function atualizarNavbar() {
     if (sobre) sobre.insertAdjacentHTML('beforebegin', html);
   };
 
+  // Gerir visibilidade do botão Sair
+  const itemSair = document.getElementById('itemSair');
+
   if (!logado) {
-    // Visitante: apenas Sobre + botão Entrar
-    inserirAntesSobre('<li class="item-dinamico"><a href="login.html" class="btn-add-project">Entrar</a></li>');
+    // Visitante: botão Entrar + esconder Sair
+    if (itemSair) itemSair.style.display = 'none';
+    inserirAntesSobre('<li class="item-dinamico"><a href="welcome.html" class="btn-add-project">Entrar</a></li>');
     return;
   }
+
+  // Logado: mostrar Sair
+  if (itemSair) itemSair.style.display = 'list-item';
 
   if (isAdmin) {
     inserirAntesSobre('<li class="item-dinamico"><a href="admin.html" class="btn-admin">Admin</a></li>');
@@ -226,7 +233,7 @@ function atualizarNavbar() {
     inserirAntesSobre(`
       <li class="item-dinamico">
         <a href="#" class="btn-notificacoes" id="btnNotifPropostas" onclick="toggleNotificacoes(event)">
-          🔔 Notificacoes <span class="notif-badge" id="notifBadge" style="display:none">0</span>
+          🔔 Propostas <span class="notif-badge" id="notifBadge" style="display:none">0</span>
         </a>
       </li>
       <li class="item-dinamico">
@@ -563,6 +570,15 @@ async function enviarMsg(propostaId) {
   } catch(e) {}
 }
 
+function pedirServico() {
+  const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+  if (!token) {
+    window.location.href = 'welcome.html';
+  } else {
+    window.location.href = 'publicar-pedido.html';
+  }
+}
+
 function logout() {
   const token = localStorage.getItem("authToken");
   
@@ -584,11 +600,19 @@ function logout() {
 
 // ── MODAIS EXISTENTES ──
 let engenheiroAtual = '';
+let engenheiroAlvoId = 0;
+let projetoRefId = 0;
 
-function abrirModalContacto(engenheiro) {
-  engenheiroAtual = engenheiro;
-  document.getElementById("modalTitulo").innerText = `Contactar: ${engenheiro}`;
-  document.getElementById("modalContacto").classList.add("aberto");
+function abrirModalContacto(engenheiro, engId, projId) {
+  const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+  if (!token) { window.location.href = 'welcome.html'; return; }
+  engenheiroAtual  = engenheiro;
+  engenheiroAlvoId = engId || 0;
+  projetoRefId     = projId || 0;
+  document.getElementById('modalTitulo').innerText = `Contactar: ${engenheiro}`;
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  if (user.nome) document.getElementById('clienteNome').value = user.nome;
+  document.getElementById('modalContacto').classList.add('aberto');
 }
 
 function fecharModal(id) {
@@ -598,17 +622,28 @@ function fecharModal(id) {
   }
 }
 
-function enviarPedido() {
-  const nome = document.getElementById("clienteNome")?.value.trim();
-  const tel = document.getElementById("clienteTel")?.value.trim();
-  if (!nome || !tel) {
-    mostrarToast("Por favor preencha nome e telefone.");
-    return;
-  }
-  fecharModal("modalContacto");
-  mostrarToast(`Pedido de contacto enviado para ${engenheiroAtual}!`);
-  document.getElementById("clienteNome").value = '';
-  document.getElementById("clienteTel").value = '';
+async function enviarPedido() {
+  const nome = document.getElementById('clienteNome')?.value.trim();
+  const tel  = document.getElementById('clienteTel')?.value.trim();
+  const tipo = document.getElementById('clienteTipo')?.value;
+  const msg  = document.getElementById('clienteMensagem')?.value.trim();
+  if (!nome || !tel) { mostrarToast('Por favor preencha nome e telefone.'); return; }
+  const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+  const user  = JSON.parse(localStorage.getItem('user') || '{}');
+  try {
+    await fetch(`${API_URL}/pedidos-directos`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
+      body: JSON.stringify({
+        engenheiro_id: engenheiroAlvoId, engenheiro_nome: engenheiroAtual,
+        projeto_id: projetoRefId, cliente_nome: nome, cliente_tel: tel,
+        tipo_projeto: tipo, mensagem: msg, cliente_id: user.id || null
+      })
+    });
+  } catch(e) {}
+  fecharModal('modalContacto');
+  mostrarToast(`✅ Pedido enviado para ${engenheiroAtual}! Aguarde o contacto.`);
+  ['clienteNome','clienteTel','clienteMensagem'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
 }
 
 

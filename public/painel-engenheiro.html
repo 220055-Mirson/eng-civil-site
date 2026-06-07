@@ -366,6 +366,62 @@
     }
     .btn-enviar-prop:hover { background: var(--laranja-escuro); }
 
+    /* TABS */
+    .tabs {
+      display: flex; gap: 0; margin-bottom: 1.2rem;
+      background: var(--branco);
+      border: 1.5px solid var(--cinza-suave);
+      border-radius: 10px; overflow: hidden;
+    }
+    .tab-btn {
+      flex: 1; padding: 12px 16px;
+      background: none; border: none;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px; font-weight: 600;
+      color: #888; cursor: pointer;
+      transition: all 0.15s;
+      display: flex; align-items: center;
+      justify-content: center; gap: 7px;
+      border-right: 1.5px solid var(--cinza-suave);
+      position: relative;
+    }
+    .tab-btn:last-child { border-right: none; }
+    .tab-btn:hover { background: var(--cinza-claro); color: var(--cinza-texto); }
+    .tab-btn.active {
+      background: var(--laranja-claro);
+      color: var(--laranja);
+      border-bottom: 2.5px solid var(--laranja);
+    }
+    .tab-badge {
+      background: var(--laranja); color: white;
+      border-radius: 10px; padding: 1px 7px;
+      font-size: 10px; font-weight: 800;
+      display: none;
+    }
+    .tab-badge.visivel { display: inline-flex; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* PEDIDO DIRECTO CARD */
+    .pd-card {
+      background: var(--branco);
+      border: 1.5px solid var(--cinza-suave);
+      border-radius: 12px; overflow: hidden;
+      transition: border-color 0.2s;
+      margin-bottom: 0.8rem;
+    }
+    .pd-card.novo { border-left: 4px solid var(--laranja); }
+    .pd-card.lido { opacity: 0.75; }
+    .pd-card-body { padding: 1.2rem 1.4rem; }
+    .pd-meta { font-size: 11px; color: #aaa; margin-bottom: 4px; font-family: monospace; }
+    .pd-cliente { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; margin-bottom: 2px; }
+    .pd-info { font-size: 12px; color: #888; margin-bottom: 8px; }
+    .pd-msg { font-size: 13px; color: var(--cinza-texto); background: var(--cinza-claro); border-radius: 8px; padding: 10px 13px; line-height: 1.5; }
+    .pd-footer { padding: 0.8rem 1.4rem; background: #FAFAF7; border-top: 1px solid var(--cinza-claro); display: flex; align-items: center; justify-content: space-between; }
+    .pd-tel { font-size: 13px; font-weight: 700; color: var(--verde); }
+    .btn-marcar-lido { background: none; border: 1.5px solid var(--cinza-suave); padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; color: #888; transition: all 0.15s; }
+    .btn-marcar-lido:hover { border-color: var(--verde); color: var(--verde); }
+
     /* EMPTY STATE */
     .empty-state {
       text-align: center; padding: 4rem 2rem;
@@ -446,8 +502,8 @@
     <main class="main-area">
       <div class="main-header">
         <div>
-          <h1>📋 Pedidos de Clientes</h1>
-          <p>Veja os pedidos publicados e envie a sua proposta</p>
+          <h1>Painel do Engenheiro</h1>
+          <p>Gerencie os seus pedidos e propostas</p>
         </div>
         <div class="search-bar">
           <span>🔍</span>
@@ -455,14 +511,40 @@
         </div>
       </div>
 
-      <div class="pedidos-list" id="pedidosList">
+      <!-- TABS -->
+      <div class="tabs">
+        <button class="tab-btn active" onclick="mudarTab('pedidos', this)">
+          📋 Pedidos de Clientes
+        </button>
+        <button class="tab-btn" onclick="mudarTab('directos', this)">
+          📩 Contactos Directos
+          <span class="tab-badge" id="badgeDirectos">0</span>
+        </button>
+      </div>
+
+      <!-- TAB: Pedidos gerais -->
+      <div class="tab-panel active" id="tab-pedidos">
+        <div class="pedidos-list" id="pedidosList">
         <!-- Carregado via JS -->
         <div class="empty-state">
           <div class="icon">⏳</div>
           <h3>A carregar pedidos...</h3>
           <p>Aguarde um momento.</p>
         </div>
-      </div>
+        </div>
+      </div><!-- /tab-pedidos -->
+
+      <!-- TAB: Contactos Directos -->
+      <div class="tab-panel" id="tab-directos">
+        <div class="pedidos-list" id="directosList">
+          <div class="empty-state">
+            <div class="icon">⏳</div>
+            <h3>A carregar contactos...</h3>
+            <p>Aguarde um momento.</p>
+          </div>
+        </div>
+      </div><!-- /tab-directos -->
+
     </main>
 
   </div>
@@ -509,7 +591,8 @@
   <script src="js/config.js"></script>
   <script>
     const token = localStorage.getItem('token');
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const user  = JSON.parse(localStorage.getItem('user') || '{}');
+    const BASE  = (typeof API_URL !== 'undefined' ? API_URL.replace('/api','') : null) || window.API_BASE || 'http://localhost:3000';
     let pedidosData = [];
     let filtroAtivo = 'todos';
     let pedidoSelecionadoId = null;
@@ -542,7 +625,6 @@
 
     async function carregarPedidos() {
       try {
-        const BASE = window.API_BASE || 'http://localhost:3000';
         const res = await fetch(`${BASE}/api/pedidos`, {
           headers: token ? { 'Authorization': `Bearer ${token}` } : {}
         });
@@ -595,7 +677,7 @@
     }
 
     function renderCard(p) {
-      const jaEnviou = propostasEnviadas.includes(p.id);
+      const jaEnviou = propostasEnviadas.map(String).includes(String(p.id));
       const urgClass = p.urgencia === 'Muito urgente' ? 'alta' : '';
       const orcamento = p.orcamento_min || p.orcamento_max
         ? `${p.orcamento_min ? fmtMZN(p.orcamento_min) : '?'} – ${p.orcamento_max ? fmtMZN(p.orcamento_max) : 'Sem limite'}`
@@ -639,7 +721,7 @@
 
     function abrirProposta(id) {
       pedidoSelecionadoId = id;
-      const p = pedidosData.find(x => x.id === id);
+      const p = pedidosData.find(x => String(x.id) === String(id));
       if (!p) return;
       document.getElementById('modalPedidoInfo').innerHTML = `
         <p><strong>${p.tipo}</strong> · ${p.local}</p>
@@ -658,46 +740,138 @@
     }
 
     async function enviarProposta() {
-      const valor = document.getElementById('propValor').value;
-      const prazo = document.getElementById('propPrazo').value.trim();
+      const valor    = document.getElementById('propValor').value;
+      const prazo    = document.getElementById('propPrazo').value.trim();
       const descricao = document.getElementById('propDescricao').value.trim();
-      if (!valor || !prazo || !descricao) { alert('Preencha todos os campos obrigatórios.'); return; }
+
+      if (!valor || !prazo || !descricao) {
+        mostrarNotif('Por favor preencha valor, prazo e descrição.', 'erro');
+        return;
+      }
+
+      const btnEnviar = document.querySelector('.btn-enviar-prop');
+      btnEnviar.textContent = 'A enviar...';
+      btnEnviar.disabled = true;
 
       const proposta = {
-        pedido_id: pedidoSelecionadoId,
-        engenheiro_id: user.id,
-        engenheiro_nome: user.nome,
+        pedido_id:       pedidoSelecionadoId,
+        engenheiro_id:   user.id   || null,
+        engenheiro_nome: user.nome || 'Engenheiro',
         valor, prazo, descricao,
-        disponibilidade: document.getElementById('propDisponibilidade').value,
-        status: 'pendente',
-        enviada_em: new Date().toISOString()
+        disponibilidade: document.getElementById('propDisponibilidade').value
       };
 
+      let sucesso = false;
       try {
-        const BASE = window.API_BASE || 'http://localhost:3000';
-        await fetch(`${BASE}/api/propostas`, {
+        const res = await fetch(`${BASE}/api/propostas`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', ...(token && { 'Authorization': `Bearer ${token}` }) },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token && { 'Authorization': `Bearer ${token}` })
+          },
           body: JSON.stringify(proposta)
         });
-      } catch { /* demo */ }
+        if (res.status === 409) {
+          mostrarNotif('Já enviou uma proposta para este pedido.', 'erro');
+          btnEnviar.textContent = 'Enviar Proposta';
+          btnEnviar.disabled = false;
+          return;
+        }
+        sucesso = res.ok;
+      } catch { sucesso = false; }
 
-      propostasEnviadas.push(pedidoSelecionadoId);
-      localStorage.setItem('propostasEnviadas', JSON.stringify(propostasEnviadas));
+      // Guardar localmente independentemente do resultado da API
+      const idStr = String(pedidoSelecionadoId);
+      if (!propostasEnviadas.includes(idStr)) {
+        propostasEnviadas.push(idStr);
+        localStorage.setItem('propostasEnviadas', JSON.stringify(propostasEnviadas));
+      }
       document.getElementById('statEnviadas').textContent = propostasEnviadas.length;
 
       fecharModal();
-      renderPedidos(document.getElementById('searchInput').value);
-      alert('✅ Proposta enviada! O cliente irá receber notificação.');
+      renderPedidos(document.getElementById('searchInput')?.value || '');
+      mostrarNotif('✅ Proposta enviada com sucesso! O cliente será notificado.', 'sucesso');
+
+      btnEnviar.textContent = 'Enviar Proposta';
+      btnEnviar.disabled = false;
     }
 
     function verDetalhes(id) {
-      const p = pedidosData.find(x => x.id === id);
+      const p = pedidosData.find(x => String(x.id) === String(id));
       if (!p) return;
-      alert(`Detalhes do Pedido ${p.id}\n\nTipo: ${p.tipo}\nLocal: ${p.local}\nTalhão: ${p.talhao || 'N/D'} m²\nUrgência: ${p.urgencia}\n\nDescrição:\n${p.descricao}`);
+
+      // Remover modal anterior se existir
+      document.getElementById('modalDetalhes')?.remove();
+
+      const orc = (p.orcamento_min || p.orcamento_max)
+        ? `${p.orcamento_min ? fmtMZN(p.orcamento_min) : '?'} – ${p.orcamento_max ? fmtMZN(p.orcamento_max) : 'Sem limite'}`
+        : 'Não definido';
+
+      const modal = document.createElement('div');
+      modal.id = 'modalDetalhes';
+      modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:998;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(2px)';
+      modal.innerHTML = `
+        <div style="background:white;border-radius:16px;padding:0;max-width:500px;width:94%;max-height:90vh;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.2);animation:slideUp .25s ease">
+          <div style="background:var(--cinza-texto);padding:1.2rem 1.5rem;display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.4);font-family:monospace;margin-bottom:3px">${p.codigo || p.id}</div>
+              <h3 style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;color:white">${p.tipo} · ${p.local}</h3>
+            </div>
+            <button onclick="document.getElementById('modalDetalhes').remove()" style="background:none;border:none;color:rgba(255,255,255,0.6);font-size:1.3rem;cursor:pointer;padding:0">✕</button>
+          </div>
+          <div style="padding:1.5rem;overflow-y:auto;max-height:65vh">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-bottom:1.2rem">
+              <div style="background:#F1EFE8;border-radius:8px;padding:0.8rem">
+                <div style="font-size:11px;color:#aaa;margin-bottom:2px">Cliente</div>
+                <div style="font-size:13px;font-weight:700">${p.nome_cliente || '–'}</div>
+              </div>
+              <div style="background:#F1EFE8;border-radius:8px;padding:0.8rem">
+                <div style="font-size:11px;color:#aaa;margin-bottom:2px">Urgência</div>
+                <div style="font-size:13px;font-weight:700">${p.urgencia || '–'}</div>
+              </div>
+              <div style="background:#F1EFE8;border-radius:8px;padding:0.8rem">
+                <div style="font-size:11px;color:#aaa;margin-bottom:2px">Talhão</div>
+                <div style="font-size:13px;font-weight:700">${p.talhao ? p.talhao + ' m²' : 'N/D'}</div>
+              </div>
+              <div style="background:#F1EFE8;border-radius:8px;padding:0.8rem">
+                <div style="font-size:11px;color:#aaa;margin-bottom:2px">Orçamento</div>
+                <div style="font-size:13px;font-weight:700;color:#3B6D11">${orc}</div>
+              </div>
+            </div>
+            <div style="margin-bottom:1.2rem">
+              <div style="font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Descrição</div>
+              <p style="font-size:14px;color:#444;line-height:1.65;background:#F1EFE8;border-radius:8px;padding:1rem">${p.descricao}</p>
+            </div>
+            ${p.contacto_preferencia ? `<div style="font-size:12px;color:#888">📱 Preferência de contacto: <strong>${p.contacto_preferencia}</strong></div>` : ''}
+          </div>
+          <div style="padding:1rem 1.5rem;border-top:1px solid #F1EFE8;display:flex;gap:0.8rem;justify-content:flex-end">
+            <button onclick="document.getElementById('modalDetalhes').remove()" style="background:#F1EFE8;color:#444;border:none;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">Fechar</button>
+            ${!propostasEnviadas.includes(String(p.id)) ? `<button onclick="document.getElementById('modalDetalhes').remove(); abrirProposta('${p.id}')" style="background:#D85A30;color:white;border:none;padding:10px 20px;border-radius:8px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer">Enviar Proposta →</button>` : '<span style="font-size:12px;color:#3B6D11;font-weight:600;align-self:center">✓ Proposta já enviada</span>'}
+          </div>
+        </div>`;
+      document.body.appendChild(modal);
+      // Fechar ao clicar fora
+      modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
     }
 
     function fmtMZN(v) { return `${parseInt(v).toLocaleString('pt-MZ')} MZN`; }
+
+    function mostrarNotif(msg, tipo) {
+      let n = document.getElementById('notifPainel');
+      if (!n) {
+        n = document.createElement('div');
+        n.id = 'notifPainel';
+        n.style.cssText = 'position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);padding:12px 22px;border-radius:10px;font-size:13px;font-weight:600;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.15);transition:opacity .3s;white-space:nowrap';
+        document.body.appendChild(n);
+      }
+      n.style.background = tipo === 'erro' ? '#FEF2F2' : '#444441';
+      n.style.color      = tipo === 'erro' ? '#DC2626'  : 'white';
+      n.style.border     = tipo === 'erro' ? '1px solid #FECACA' : 'none';
+      n.textContent = msg;
+      n.style.opacity = '1';
+      clearTimeout(n._t);
+      n._t = setTimeout(() => n.style.opacity = '0', 3500);
+    }
 
     function tempoRelativo(iso) {
       const d = new Date(iso);
@@ -708,6 +882,111 @@
     }
 
     carregarPedidos();
+
+    // ── TABS ──
+    function mudarTab(tab, btn) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(`tab-${tab}`).classList.add('active');
+      if (tab === 'directos') carregarDirectos();
+    }
+
+    // ── CONTACTOS DIRECTOS ──
+    async function carregarDirectos() {
+      const lista = document.getElementById('directosList');
+      if (!lista) return;
+      lista.innerHTML = '<div class="empty-state"><div class="icon">⏳</div><h3>A carregar...</h3></div>';
+
+      try {
+        const res = await fetch(`${BASE}/api/pedidos-directos`, {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+        if (!res.ok) throw new Error();
+        const dados = await res.json();
+
+        // Actualizar badge
+        const novos = dados.filter(d => !d.lido).length;
+        const badge = document.getElementById('badgeDirectos');
+        if (badge) {
+          badge.textContent = novos;
+          badge.classList.toggle('visivel', novos > 0);
+        }
+
+        if (!dados.length) {
+          lista.innerHTML = `<div class="empty-state">
+            <div class="icon">📩</div>
+            <h3>Sem contactos directos</h3>
+            <p>Quando um cliente clicar em "Pedir contacto" num dos seus projectos, aparece aqui.</p>
+          </div>`;
+          return;
+        }
+
+        lista.innerHTML = dados.map(d => {
+          const data = tempoRelativo(d.criado_em);
+          const isNovo = !d.lido;
+          return `
+            <div class="pd-card ${isNovo ? 'novo' : 'lido'}" id="pd-${d.id}">
+              <div class="pd-card-body">
+                <div class="pd-meta">${data}${d.projeto_titulo ? ` · Projecto: ${d.projeto_titulo}` : ''}</div>
+                <div class="pd-cliente">👤 ${d.cliente_nome} ${isNovo ? '<span style="background:var(--laranja);color:white;font-size:10px;padding:2px 8px;border-radius:10px;margin-left:6px;font-weight:700">NOVO</span>' : ''}</div>
+                <div class="pd-info">
+                  ${d.tipo_projeto ? `📐 ${d.tipo_projeto}` : ''}
+                </div>
+                ${d.mensagem ? `<div class="pd-msg">"${d.mensagem}"</div>` : ''}
+              </div>
+              <div class="pd-footer">
+                <span class="pd-tel">${d.cliente_tel ? `📞 ${d.cliente_tel}` : 'Sem telefone'}</span>
+                ${isNovo ? `<button class="btn-marcar-lido" onclick="marcarLido(${d.id})">✓ Marcar como lido</button>` : '<span style="font-size:11px;color:#bbb">✓ Lido</span>'}
+              </div>
+            </div>`;
+        }).join('');
+
+      } catch(e) {
+        lista.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><h3>Erro ao carregar</h3><p>Verifique a ligação ao servidor.</p></div>';
+      }
+    }
+
+    async function marcarLido(id) {
+      try {
+        await fetch(`${BASE}/api/pedidos-directos/${id}/lido`, {
+          method: 'PATCH',
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+      } catch(e) {}
+      // Actualizar visualmente
+      const card = document.getElementById(`pd-${id}`);
+      if (card) {
+        card.classList.remove('novo');
+        card.classList.add('lido');
+        const btn = card.querySelector('.btn-marcar-lido');
+        if (btn) btn.outerHTML = '<span style="font-size:11px;color:#bbb">✓ Lido</span>';
+        const novoBadge = card.querySelector('[style*="NOVO"]');
+        if (novoBadge) novoBadge.remove();
+      }
+      // Actualizar badge
+      const badgeEl = document.getElementById('badgeDirectos');
+      if (badgeEl) {
+        const n = Math.max(0, parseInt(badgeEl.textContent) - 1);
+        badgeEl.textContent = n;
+        badgeEl.classList.toggle('visivel', n > 0);
+      }
+    }
+
+    // Carregar badge ao iniciar
+    (async () => {
+      try {
+        const r = await fetch(`${BASE}/api/pedidos-directos/novos`, {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+        if (r.ok) {
+          const { total } = await r.json();
+          const b = document.getElementById('badgeDirectos');
+          if (b && total > 0) { b.textContent = total; b.classList.add('visivel'); }
+        }
+      } catch(e) {}
+    })();
+
   </script>
 </body>
 </html>

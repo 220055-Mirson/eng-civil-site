@@ -1,95 +1,606 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sobre Nós - OBRAVIA</title>
-    <link rel="stylesheet" href="css/about.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" href="img/LOGO.png" type="image/x-icon">
+  <title>OBRAVIA — Sobre Nós</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --laranja: #D85A30;
+      --laranja-escuro: #993C1D;
+      --laranja-claro: #FAECE7;
+      --cinza-claro: #F1EFE8;
+      --cinza-texto: #444441;
+      --cinza-suave: #D3D1C7;
+      --branco: #ffffff;
+      --verde: #3B6D11;
+      --verde-claro: #EAF3DE;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cinza-claro);
+      color: var(--cinza-texto);
+    }
+
+    /* ── HERO ── */
+    .sobre-hero {
+      background: var(--cinza-texto);
+      padding: 5rem 2rem 4rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .sobre-hero::before {
+      content: '';
+      position: absolute; top: -120px; right: -120px;
+      width: 420px; height: 420px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(216,90,48,0.12) 0%, transparent 70%);
+    }
+    .sobre-hero::after {
+      content: '';
+      position: absolute; bottom: -80px; left: -80px;
+      width: 320px; height: 320px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(59,109,17,0.08) 0%, transparent 70%);
+    }
+    .sobre-hero-tag {
+      display: inline-block;
+      background: rgba(216,90,48,0.18);
+      color: var(--laranja);
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 5px 14px; border-radius: 20px;
+      border: 1px solid rgba(216,90,48,0.3);
+      margin-bottom: 1.2rem;
+      position: relative; z-index: 1;
+    }
+    .sobre-hero h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 800;
+      color: var(--branco);
+      line-height: 1.15;
+      margin-bottom: 1rem;
+      position: relative; z-index: 1;
+    }
+    .sobre-hero h1 span { color: var(--laranja); }
+    .sobre-hero p {
+      font-size: 16px;
+      color: rgba(255,255,255,0.58);
+      max-width: 520px; margin: 0 auto;
+      line-height: 1.65;
+      position: relative; z-index: 1;
+    }
+
+    /* ── LAYOUT ── */
+    .page-content {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem 5rem;
+    }
+
+    /* ── QUEM SOMOS ── */
+    .section-label {
+      font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--laranja); margin-bottom: 0.6rem;
+    }
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.8rem; font-weight: 800;
+      color: var(--cinza-texto);
+      margin-bottom: 1.2rem;
+      line-height: 1.2;
+    }
+
+    .quem-somos {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      align-items: start;
+      margin-bottom: 4rem;
+    }
+    @media (max-width: 720px) { .quem-somos { grid-template-columns: 1fr; gap: 2rem; } }
+
+    .quem-somos-text p {
+      font-size: 15px;
+      color: #666;
+      line-height: 1.75;
+      margin-bottom: 1rem;
+    }
+
+    /* Linha decorativa lateral */
+    .quem-somos-visual {
+      background: var(--branco);
+      border: 1.5px solid var(--cinza-suave);
+      border-radius: 16px;
+      padding: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .quem-somos-visual::before {
+      content: '';
+      position: absolute; top: 0; left: 0;
+      width: 4px; height: 100%;
+      background: linear-gradient(180deg, var(--laranja) 0%, var(--verde) 100%);
+    }
+    .visual-item {
+      display: flex; align-items: flex-start;
+      gap: 1rem; padding: 1rem 0;
+      border-bottom: 1px solid var(--cinza-claro);
+    }
+    .visual-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .visual-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: var(--laranja-claro);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; flex-shrink: 0;
+    }
+    .visual-item h4 {
+      font-family: 'Syne', sans-serif;
+      font-size: 14px; font-weight: 700;
+      margin-bottom: 3px;
+    }
+    .visual-item p {
+      font-size: 12.5px; color: #888; line-height: 1.5;
+    }
+
+    /* ── STATS ── */
+    .stats-section {
+      background: var(--cinza-texto);
+      border-radius: 20px;
+      padding: 3rem 2rem;
+      margin-bottom: 4rem;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      position: relative;
+      overflow: hidden;
+    }
+    @media (max-width: 720px) { .stats-section { grid-template-columns: repeat(2, 1fr); } }
+    .stats-section::before {
+      content: '';
+      position: absolute; top: -60px; right: -60px;
+      width: 280px; height: 280px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(216,90,48,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .stat-item { text-align: center; position: relative; z-index: 1; }
+    .stat-num {
+      font-family: 'Syne', sans-serif;
+      font-size: 2.8rem; font-weight: 800;
+      color: var(--laranja);
+      line-height: 1;
+      margin-bottom: 0.4rem;
+      display: block;
+    }
+    .stat-desc {
+      font-size: 13px; color: rgba(255,255,255,0.5);
+      line-height: 1.4;
+    }
+
+    /* ── MVV ── */
+    .mvv-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.2rem;
+      margin-bottom: 4rem;
+    }
+    @media (max-width: 720px) { .mvv-grid { grid-template-columns: 1fr; } }
+
+    .mvv-card {
+      background: var(--branco);
+      border: 1.5px solid var(--cinza-suave);
+      border-radius: 16px;
+      padding: 1.8rem;
+      position: relative;
+      overflow: hidden;
+      transition: box-shadow 0.2s, border-color 0.2s;
+    }
+    .mvv-card:hover {
+      border-color: var(--laranja);
+      box-shadow: 0 8px 30px rgba(216,90,48,0.1);
+    }
+    .mvv-card::after {
+      content: '';
+      position: absolute; bottom: 0; left: 0;
+      width: 100%; height: 3px;
+    }
+    .mvv-card.missao::after { background: var(--laranja); }
+    .mvv-card.visao::after  { background: var(--verde); }
+    .mvv-card.valores::after { background: #1D5FAD; }
+
+    .mvv-icon {
+      font-size: 1.8rem; margin-bottom: 0.8rem; display: block;
+    }
+    .mvv-card h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem; font-weight: 800;
+      margin-bottom: 0.7rem; color: var(--cinza-texto);
+    }
+    .mvv-card p {
+      font-size: 13.5px; color: #777;
+      line-height: 1.65;
+    }
+    .mvv-card ul {
+      list-style: none; padding: 0; margin: 0;
+    }
+    .mvv-card ul li {
+      font-size: 13px; color: #666;
+      padding: 5px 0;
+      border-bottom: 1px solid var(--cinza-claro);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .mvv-card ul li:last-child { border-bottom: none; }
+    .mvv-card ul li::before {
+      content: '✓';
+      color: var(--laranja);
+      font-weight: 700; font-size: 12px;
+    }
+
+    /* ── EQUIPA ── */
+    .equipa-section { margin-bottom: 4rem; }
+    .equipa-intro {
+      max-width: 600px; margin-bottom: 2rem;
+    }
+    .equipa-intro p {
+      font-size: 15px; color: #777; line-height: 1.7;
+    }
+
+    .equipa-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.2rem;
+    }
+    @media (max-width: 720px) { .equipa-grid { grid-template-columns: 1fr; } }
+
+    .membro-card {
+      background: var(--branco);
+      border: 1.5px solid var(--cinza-suave);
+      border-radius: 14px;
+      padding: 1.5rem;
+      text-align: center;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .membro-card:hover {
+      border-color: var(--laranja);
+      transform: translateY(-3px);
+    }
+    .membro-avatar {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      background: var(--laranja-claro);
+      color: var(--laranja);
+      font-family: 'Syne', sans-serif;
+      font-size: 1.5rem; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 0.8rem;
+      border: 2px solid var(--laranja);
+    }
+    .membro-nome {
+      font-family: 'Syne', sans-serif;
+      font-size: 14px; font-weight: 700;
+      margin-bottom: 3px;
+    }
+    .membro-cargo {
+      font-size: 12px; color: var(--laranja);
+      font-weight: 600; margin-bottom: 6px;
+    }
+    .membro-desc {
+      font-size: 12px; color: #999;
+      line-height: 1.5;
+    }
+
+    /* ── CTA ── */
+    .cta-section {
+      background: linear-gradient(135deg, var(--laranja) 0%, var(--laranja-escuro) 100%);
+      border-radius: 20px;
+      padding: 3rem 2rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-section::before {
+      content: '';
+      position: absolute; top: -60px; right: -60px;
+      width: 240px; height: 240px; border-radius: 50%;
+      background: rgba(255,255,255,0.06);
+    }
+    .cta-section h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.8rem; font-weight: 800;
+      color: white; margin-bottom: 0.6rem;
+      position: relative; z-index: 1;
+    }
+    .cta-section p {
+      font-size: 15px; color: rgba(255,255,255,0.75);
+      margin-bottom: 1.8rem; line-height: 1.6;
+      position: relative; z-index: 1;
+    }
+    .cta-btns {
+      display: flex; gap: 1rem;
+      justify-content: center; flex-wrap: wrap;
+      position: relative; z-index: 1;
+    }
+    .btn-cta-primary {
+      background: white; color: var(--laranja);
+      border: none; padding: 13px 28px;
+      border-radius: 9px;
+      font-family: 'Syne', sans-serif;
+      font-size: 14px; font-weight: 700;
+      cursor: pointer; text-decoration: none;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-cta-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+    .btn-cta-secondary {
+      background: transparent; color: white;
+      border: 1.5px solid rgba(255,255,255,0.5);
+      padding: 13px 28px; border-radius: 9px;
+      font-family: 'Syne', sans-serif;
+      font-size: 14px; font-weight: 600;
+      cursor: pointer; text-decoration: none;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .btn-cta-secondary:hover { border-color: white; background: rgba(255,255,255,0.08); }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--cinza-texto);
+      padding: 2.5rem 1.5rem;
+      text-align: center;
+      margin-top: 0;
+    }
+    .footer-inner {
+      max-width: 600px; margin: 0 auto;
+    }
+    .footer-inner h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem; font-weight: 700;
+      color: var(--branco); margin-bottom: 1rem;
+    }
+    .redes-sociais {
+      display: flex; gap: 0.8rem;
+      justify-content: center; margin-bottom: 1rem;
+    }
+    .redes-sociais a img {
+      width: 30px; height: 30px;
+      object-fit: contain; opacity: 0.7;
+      transition: opacity 0.15s;
+    }
+    .redes-sociais a:hover img { opacity: 1; }
+    .footer-inner p {
+      font-size: 12px; color: rgba(255,255,255,0.35);
+      margin-bottom: 4px;
+    }
+  </style>
 </head>
 <body>
-    <header class="header">
-        <div class="nav-container">
-            <a href="/" class="logo">OBRAVIA</a>
-            <nav class="nav-links">
-                <a href="/">Home</a>
-                <a href="#" class="active">Sobre</a>
-            </nav>
-        </div>
-    </header>
 
-    <div class="container">
-        <section class="hero">
-            <h1 class="hero-title">Sobre a OBRAVIA</h1>
-            <p class="hero-subtitle">Construindo o futuro com excelência e inovação</p>
-        </section>
-
-        <div class="about-section">
-            <div class="about-grid">
-                <div class="about-content">
-                    <h2>Quem Somos</h2>
-                    <p>A <strong>OBRAVIA</strong> é uma empresa líder no setor de construção civil e gestão de projetos, dedicada a transformar sonhos em realidade com qualidade, segurança e inovação. Fundada com a missão de revolucionar o mercado da construção, nos destacamos pela excelência em cada projeto que realizamos.</p>
-                    
-                    <p>Com anos de experiência no mercado, nossa equipe é composta por profissionais altamente qualificados que trabalham incansavelmente para entregar resultados que superam as expectativas de nossos clientes.</p>
-                    
-                    <h3>Nossa Missão</h3>
-                    <p>Oferecer soluções inovadoras e sustentáveis em construção civil, garantindo qualidade, segurança e satisfação total dos nossos clientes, contribuindo para o desenvolvimento urbano e a melhoria da qualidade de vida.</p>
-                    
-                    <h3>Nossa Visão</h3>
-                    <p>Ser referência nacional em construção civil até 2030, reconhecida pela excelência técnica, inovação tecnológica e compromisso com a sustentabilidade.</p>
-                    
-                    <h3>Nossos Valores</h3>
-                    <ul class="values-list">
-                        <li><strong>Integridade:</strong> Agimos com ética e transparência em todas as relações</li>
-                        <li><strong>Excelência:</strong> Buscamos a perfeição em cada detalhe</li>
-                        <li><strong>Inovação:</strong> Incorporamos as melhores tecnologias do mercado</li>
-                        <li><strong>Sustentabilidade:</strong> Compromisso com o meio ambiente e futuro</li>
-                        <li><strong>Segurança:</strong> Priorizamos a segurança de todos os envolvidos</li>
-                    </ul>
-                </div>
-                <div class="stats-container">
-                    <div class="stat-card">
-                        <div class="stat-number">150+</div>
-                        <div class="stat-label">Projetos Concluídos</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">10+</div>
-                        <div class="stat-label">Anos de Experiência</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">98%</div>
-                        <div class="stat-label">Clientes Satisfeitos</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">50+</div>
-                        <div class="stat-label">Profissionais Especializados</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <footer class="footer">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h3>OBRAVIA</h3>
-                    <p>Construindo o futuro com excelência e inovação</p>
-                </div>
-                <div class="footer-section">
-                    <h4>Contato</h4>
-                    <p>📞 (11) 99999-9999</p>
-                    <p>✉️ contato@obravia.com</p>
-                    <p>📍 São Paulo, SP</p>
-                </div>
-                <div class="footer-section">
-                    <h4>Horário de Funcionamento</h4>
-                    <p>Seg-Sex: 8h às 18h</p>
-                    <p>Sábado: 8h às 12h</p>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2026 OBRAVIA - Todos os direitos reservados</p>
-                <p>DevForge</p>
-            </div>
-        </footer>
+  <!-- NAVBAR (igual ao index) -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="logo">
+        <img src="img/OBRAVIA.jpeg" alt="Logo OBRAVIA"
+             onerror="this.style.display='none'">
+      </div>
+      <div class="welcomen-user" id="bemVindo">Bem-vindo, Visitante</div>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html">← Início</a></li>
+        <li><a href="sobre.html" class="btn-sobre active">Sobre</a></li>
+        <li id="itemSair" style="display:none">
+          <a href="#" class="btn-sair" onclick="logout()">Sair</a>
+        </li>
+      </ul>
     </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="sobre-hero">
+    <div class="sobre-hero-tag">Sobre a OBRAVIA</div>
+    <h1>A plataforma que conecta<br><span>clientes a engenheiros</span></h1>
+    <p>Nascemos para resolver um problema real em Moçambique: encontrar engenheiros verificados é difícil, demorado e arriscado. A OBRAVIA muda isso.</p>
+  </section>
+
+  <div class="page-content">
+
+    <!-- QUEM SOMOS -->
+    <div class="quem-somos" style="margin-top: 3rem;">
+      <div class="quem-somos-text">
+        <div class="section-label">Quem Somos</div>
+        <h2 class="section-title">Uma plataforma feita<br>para Moçambique</h2>
+        <p>A <strong>OBRAVIA</strong> é uma plataforma digital que conecta clientes que precisam de serviços de construção a engenheiros, arquitectos e mestres verificados em Moçambique.</p>
+        <p>O cliente publica o seu pedido — tipo de obra, localização e orçamento — e recebe propostas reais de profissionais verificados. Compara, escolhe e fecha o negócio com segurança, tudo dentro da plataforma.</p>
+        <p>Para os engenheiros, a OBRAVIA é a vitrine digital que faltava: um espaço para publicar projectos, receber pedidos de clientes e crescer profissionalmente sem depender do boca a boca.</p>
+      </div>
+
+      <div class="quem-somos-visual">
+        <div class="visual-item">
+          <div class="visual-icon">📋</div>
+          <div>
+            <h4>Cliente publica o pedido</h4>
+            <p>Descreve a obra, orçamento e localização em menos de 3 minutos.</p>
+          </div>
+        </div>
+        <div class="visual-item">
+          <div class="visual-icon">✏️</div>
+          <div>
+            <h4>Engenheiros enviam propostas</h4>
+            <p>Apenas profissionais verificados pela OBRAVIA podem responder.</p>
+          </div>
+        </div>
+        <div class="visual-item">
+          <div class="visual-icon">🤝</div>
+          <div>
+            <h4>Cliente escolhe e fecha</h4>
+            <p>Compara propostas, troca mensagens e fecha com segurança.</p>
+          </div>
+        </div>
+        <div class="visual-item">
+          <div class="visual-icon">💬</div>
+          <div>
+            <h4>Chat integrado</h4>
+            <p>Toda a comunicação fica registada na plataforma. Sem WhatsApp descontrolado.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-section">
+      <div class="stat-item">
+        <span class="stat-num">3 min</span>
+        <span class="stat-desc">Para publicar<br>um pedido</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">100%</span>
+        <span class="stat-desc">Engenheiros<br>verificados</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">3</span>
+        <span class="stat-desc">Cidades no<br>plano inicial</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">Zero</span>
+        <span class="stat-desc">Risco para<br>o cliente</span>
+      </div>
+    </div>
+
+    <!-- MISSÃO / VISÃO / VALORES -->
+    <div style="margin-bottom: 2rem;">
+      <div class="section-label">O que nos guia</div>
+      <h2 class="section-title">Missão, Visão e Valores</h2>
+    </div>
+    <div class="mvv-grid">
+
+      <div class="mvv-card missao">
+        <span class="mvv-icon">🎯</span>
+        <h3>Missão</h3>
+        <p>Tornar a contratação de engenheiros transparente, segura e acessível em Moçambique — eliminando o risco de golpes e a falta de informação que prejudicam clientes e profissionais.</p>
+      </div>
+
+      <div class="mvv-card visao">
+        <span class="mvv-icon">🔭</span>
+        <h3>Visão</h3>
+        <p>Ser a principal plataforma de construção civil em Moçambique até 2028, presente em todas as capitais provinciais e referência de confiança para clientes e engenheiros.</p>
+      </div>
+
+      <div class="mvv-card valores">
+        <span class="mvv-icon">⚖️</span>
+        <h3>Valores</h3>
+        <ul>
+          <li>Transparência total no processo</li>
+          <li>Verificação rigorosa de profissionais</li>
+          <li>Segurança para o cliente</li>
+          <li>Valorização dos engenheiros</li>
+          <li>Inovação com contexto local</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- EQUIPA -->
+    <div class="equipa-section">
+      <div class="section-label">A Nossa Equipa</div>
+      <h2 class="section-title">As pessoas por detrás da OBRAVIA</h2>
+      <div class="equipa-intro">
+        <p>Somos um grupo de jovens moçambicanos apaixonados por tecnologia e construção. Acreditamos que a inovação digital pode transformar o sector da construção em Moçambique.</p>
+      </div>
+
+      <div class="equipa-grid">
+        <div class="membro-card">
+          <div class="membro-avatar">A</div>
+          <div class="membro-nome">António Magaia</div>
+          <div class="membro-cargo">Co-fundador · Produto</div>
+          <div class="membro-desc">Responsável pela estratégia de produto e experiência do utilizador.</div>
+        </div>
+        <div class="membro-card">
+          <div class="membro-avatar">M</div>
+          <div class="membro-nome">Mirson Maluve</div>
+          <div class="membro-cargo">Co-fundador · Tecnologia</div>
+          <div class="membro-desc">Arquitectura da plataforma, backend e integração de sistemas.</div>
+        </div>
+        <div class="membro-card">
+          <div class="membro-avatar">F</div>
+          <div class="membro-nome">Flávio Chaia</div>
+          <div class="membro-cargo">Co-fundador · Operações</div>
+          <div class="membro-desc">Verificação de engenheiros e gestão de parcerias estratégicas.</div>
+        </div>
+        <div class="membro-card">
+          <div class="membro-avatar">C</div>
+          <div class="membro-nome">Clay José</div>
+          <div class="membro-cargo">Co-fundador · Design</div>
+          <div class="membro-desc">Identidade visual, interface e experiência de utilizador.</div>
+        </div>
+        <div class="membro-card">
+          <div class="membro-avatar">M</div>
+          <div class="membro-nome">Milena Cumbane</div>
+          <div class="membro-cargo">Co-fundadora · Marketing</div>
+          <div class="membro-desc">Crescimento, comunicação e relação com clientes e engenheiros.</div>
+        </div>
+        <div class="membro-card" style="background:var(--laranja-claro); border-color:var(--laranja);">
+          <div class="membro-avatar" style="background:var(--laranja);color:white">+</div>
+          <div class="membro-nome" style="color:var(--laranja)">A sua vaga</div>
+          <div class="membro-cargo">Estamos a crescer</div>
+          <div class="membro-desc">Junte-se à nossa equipa e ajude a transformar o sector da construção em Moçambique.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-section">
+      <h2>Pronto para começar?</h2>
+      <p>Publique o seu pedido gratuitamente ou registe-se como engenheiro e comece a receber clientes hoje.</p>
+      <div class="cta-btns">
+        <a href="welcome.html" class="btn-cta-primary">Criar conta grátis</a>
+        <a href="index.html" class="btn-cta-secondary">Ver projectos</a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <h2>Construa os seus sonhos com qualidade!</h2>
+      <div class="redes-sociais">
+        <a href="mailto:contato@obravia.com">
+          <img src="img/email.png" alt="E-mail">
+        </a>
+        <a href="#" target="_blank">
+          <img src="img/FB.png" alt="Facebook">
+        </a>
+        <a href="#" target="_blank">
+          <img src="img/Instagram.png" alt="Instagram">
+        </a>
+        <a href="#" target="_blank">
+          <img src="img/whatsapp.png" alt="Whatsapp">
+        </a>
+      </div>
+      <p>Mais info: 873032005 / 848164250</p>
+      <p>© 2026 OBRAVIA — Todos os direitos reservados</p>
+      <p>DevForge</p>
+    </div>
+  </footer>
+
+  <script src="js/config.js"></script>
+  <script>
+    // Sincronizar nome e botão Sair com sessão actual
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const nome = localStorage.getItem('usuarioLogado');
+    if (nome) {
+      document.getElementById('bemVindo').textContent = `Bem-vindo, ${nome}`;
+      document.getElementById('itemSair').style.display = 'list-item';
+    }
+    function logout() {
+      ['token','authToken','usuarioLogado','role','user'].forEach(k => localStorage.removeItem(k));
+      window.location.href = 'login.html';
+    }
+  </script>
 </body>
 </html>

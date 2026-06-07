@@ -56,7 +56,7 @@ async function autenticar(req, res, next) {
 
 // ── MIDDLEWARE ADMIN ──────────────────────────────────────────
 function apenasAdmin(req, res, next) {
-    if (req.usuario?.email !== 'admin@obravia.com' && req.usuario?.role !== 'admin') {
+    if (req.usuario?.email !== 'adminobravia@gmail.com' && req.usuario?.role !== 'admin') {
         return erro(res, 403, 'Acesso restrito ao administrador');
     }
     next();
@@ -496,6 +496,49 @@ app.delete('/api/admin/pedidos/:id', autenticar, apenasAdmin, async (req, res) =
     try {
         await db.eliminarPedido(req.params.id);
         res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ════════════════════════════════════════════
+//  PEDIDOS DIRECTOS
+// ════════════════════════════════════════════
+
+// Receber pedido directo de cliente
+app.post('/api/pedidos-directos', async (req, res) => {
+    try {
+        const { engenheiro_id, engenheiro_nome, projeto_id,
+                cliente_nome, cliente_tel, tipo_projeto, mensagem, cliente_id } = req.body;
+        if (!cliente_nome) return erro(res, 400, 'Nome do cliente é obrigatório');
+        if (!engenheiro_id) return erro(res, 400, 'Engenheiro não identificado');
+        const id = await db.criarPedidoDirecto({
+            engenheiro_id, engenheiro_nome, projeto_id,
+            cliente_id, cliente_nome, cliente_tel, tipo_projeto, mensagem
+        });
+        res.status(201).json({ success: true, id });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Listar pedidos directos do engenheiro autenticado
+app.get('/api/pedidos-directos', autenticar, async (req, res) => {
+    try {
+        const pedidos = await db.listarPedidosDirectos(req.usuario.id);
+        res.json(pedidos);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Marcar pedido directo como lido
+app.patch('/api/pedidos-directos/:id/lido', autenticar, async (req, res) => {
+    try {
+        await db.marcarPedidoDirectoLido(req.params.id);
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Contar pedidos novos (para badge)
+app.get('/api/pedidos-directos/novos', autenticar, async (req, res) => {
+    try {
+        const total = await db.contarPedidosDirectosNovos(req.usuario.id);
+        res.json({ total });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 

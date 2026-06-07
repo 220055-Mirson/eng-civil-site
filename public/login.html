@@ -250,9 +250,9 @@
 
     <!-- FOOTER -->
     <div class="card-footer">
-      <span>Não tem conta?
-        <a href="welcome.html">Criar conta</a>
-      </span>
+      <span>Não tem conta? <a href="welcome.html">Criar conta</a></span>
+      <span style="color:#ddd;margin:0 6px">·</span>
+      <span>É engenheiro? <a href="welcome.html">Registar aqui</a></span>
     </div>
 
   </div>
@@ -326,7 +326,13 @@
         const data = await res.json();
 
         if (!res.ok || !data.success) {
-          mostrarErro(data.error || 'Email ou senha incorrectos.');
+          const msg = data.error || 'Email ou senha incorrectos.';
+          // Mensagem amigável para eng. pendente
+          if (msg.includes('aprovação')) {
+            mostrarErro('⏳ A sua conta de engenheiro ainda está a aguardar aprovação pelo administrador da OBRAVIA. Receberá acesso em breve.');
+          } else {
+            mostrarErro(msg);
+          }
           setLoading(false);
           return;
         }
@@ -344,10 +350,15 @@
         const tipo = data.user.tipo || data.user.role;
         const engenheiros = ['senior', 'junior', 'empresa'];
 
+        let destino = 'index.html';
+        // Admin reconhecido pelo role OU pelas credenciais
+        if (tipo === 'admin' || data.user.role === 'admin' ||
+            data.user.email === 'adminobravia@gmail.com') {
+          destino = 'admin-novo-fluxo.html';
+        }
+
         setTimeout(() => {
-          window.location.href = engenheiros.includes(tipo)
-            ? 'index.html'   // engenheiro vai para index (com botão Ver Pedidos no navbar)
-            : 'index.html';  // cliente também vai para index
+          window.location.href = destino;
         }, 1000);
 
       } catch (err) {

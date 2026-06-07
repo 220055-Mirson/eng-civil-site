@@ -45,11 +45,11 @@
       <div class="logo">
         <img src="img/OBRAVIA.jpeg" alt="Logo OBRAVIA">
       </div>
-      <div class="welcomen-user" id="bemVindo">Bem-vindo</div>
+      <div class="welcomen-user" id="bemVindo">Bem-vindo, Visitante</div>
       <ul class="nav-links" id="navLinks">
         <!-- itens injectados por atualizarNavbar() -->
         <li><a href="sobre.html" class="btn-sobre">Sobre</a></li>
-        <li><a href="#" class="btn-sair" onclick="logout()">Sair</a></li>
+        <li id="itemSair" style="display:none"><a href="#" class="btn-sair" onclick="logout()">Sair</a></li>
       </ul>
     </div>
   </header>
@@ -60,7 +60,7 @@
     <p>Explore projectos reais, veja o trabalho de engenheiros verificados e peça contacto directamente.</p>
     <div class="hero-actions">
       <a href="cadastro-engenheiro.html" class="btn-primary">Criar perfil de engenheiro</a>
-      <button class="btn-outline" onclick="window.location.href='publicar-pedido.html'">Pedir um serviço</button>
+      <button class="btn-outline" onclick="pedirServico()">Pedir um serviço</button>
     </div>
   </section>
 
