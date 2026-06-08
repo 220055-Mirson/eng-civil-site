@@ -1,4 +1,4 @@
-## 🚧 Obravia
+##  Obravia
 
 Obravia é um marketplace web que conecta clientes a profissionais da área de construção civil, permitindo solicitar serviços, visualizar projetos e interagir de forma simples e eficiente.
 
@@ -22,4 +22,4 @@ Facilitar a ligação entre clientes e profissionais da construção civil, digi
 
 ## Autor
 
-Desenvolvido por [Mirson Belito]
+Desenvolvido por Mirson Belito
