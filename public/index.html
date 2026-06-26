@@ -35,6 +35,114 @@
       from { opacity:0; transform:translateY(-8px); }
       to   { opacity:1; transform:translateY(0); }
     }
+
+    /* ── HERO COM IMAGEM DE FUNDO ── */
+    #heroSection {
+      position: relative;
+      background-image: url('https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1600&q=80&fit=crop');
+      background-size: cover;
+      background-position: center 40%;
+      background-repeat: no-repeat;
+      min-height: 520px;
+      display: flex;
+      align-items: center;
+      padding: 5rem 2rem;
+    }
+
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        135deg,
+        rgba(20, 22, 28, 0.82) 0%,
+        rgba(30, 28, 20, 0.75) 50%,
+        rgba(153, 60, 29, 0.45) 100%
+      );
+      z-index: 0;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      max-width: 680px;
+    }
+
+    #heroSection h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(1.6rem, 3.5vw, 2.5rem);
+      font-weight: 800;
+      color: white;
+      line-height: 1.25;
+      margin-bottom: 0.8rem;
+      text-shadow: 0 2px 12px rgba(0,0,0,0.4);
+    }
+
+    #heroSection h1 span {
+      color: #D85A30;
+    }
+
+    .hero-tagline {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(1.2rem, 2.5vw, 1.7rem);
+      font-weight: 800;
+      color: #D85A30;
+      margin-bottom: 1rem;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    .hero-tagline strong {
+      color: #D85A30;
+    }
+
+    #heroSection p:not(.hero-tagline) {
+      font-size: 15px;
+      color: rgba(255,255,255,0.78);
+      line-height: 1.65;
+      max-width: 520px;
+      margin-bottom: 2rem;
+    }
+
+    #heroSection .hero-actions {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    #heroSection .btn-primary {
+      background: #D85A30;
+      color: white;
+      padding: 13px 28px;
+      border-radius: 8px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      box-shadow: 0 4px 16px rgba(216,90,48,0.4);
+    }
+    #heroSection .btn-primary:hover {
+      background: #993C1D;
+      transform: translateY(-2px);
+    }
+
+    #heroSection .btn-outline {
+      background: transparent;
+      color: white;
+      padding: 13px 28px;
+      border-radius: 8px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 600;
+      font-size: 14px;
+      border: 1.5px solid rgba(255,255,255,0.55);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    #heroSection .btn-outline:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: white;
+    }
   </style>
 </head>
 <body>
@@ -55,12 +163,16 @@
   </header>
 
   <!-- HERO -->
-  <section class="hero">
-    <h1>Engenheiros de confiança,<br><span>perto de si</span></h1>
-    <p>Explore projectos reais, veja o trabalho de engenheiros verificados e peça contacto directamente.</p>
-    <div class="hero-actions">
-      <a href="cadastro-engenheiro.html" class="btn-primary">Criar perfil de engenheiro</a>
-      <button class="btn-outline" onclick="pedirServico()">Pedir um serviço</button>
+  <section class="hero" id="heroSection">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <h1>"O sonho de ter casa própria não deve depender de sorte.<br><span>Depende de acesso."</span></h1>
+      <p class="hero-tagline">Isso é a <strong>OBRAVIA.</strong></p>
+      <p>Conectamos clientes a engenheiros verificados em Moçambique — com transparência, segurança e propostas reais.</p>
+      <div class="hero-actions">
+        <a href="cadastro-engenheiro.html" class="btn-primary">Criar perfil de engenheiro</a>
+        <button class="btn-outline" onclick="pedirServico()">Pedir um serviço</button>
+      </div>
     </div>
   </section>
 

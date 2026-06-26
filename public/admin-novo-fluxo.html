@@ -288,6 +288,9 @@
       <div class="nav-item" onclick="showPanel('clientes', this)">
         <span class="icon">👤</span> Clientes
       </div>
+      <div class="nav-item" onclick="showPanel('financeiro', this)">
+        <span class="icon">💰</span> Financeiro
+      </div>
 
       <div class="nav-section-label">Config</div>
       <div class="nav-item" onclick="window.location.href='admin.html'">
@@ -504,6 +507,77 @@
         </div>
       </div>
 
+      <!-- ── FINANCEIRO ── -->
+      <div class="panel" id="panel-financeiro">
+
+        <!-- Cards resumo -->
+        <div class="stats-grid" id="statsFinanceiro" style="margin-bottom:1.5rem">
+          <div class="stat-card laranja">
+            <div class="stat-icon">💰</div>
+            <div class="label">Volume Total</div>
+            <div class="value" id="sfVolume">—</div>
+            <div class="sub">Valor de todas as propostas aceites</div>
+          </div>
+          <div class="stat-card verde">
+            <div class="stat-icon">✅</div>
+            <div class="label">Comissões Confirmadas</div>
+            <div class="value" id="sfConfirmadas">—</div>
+            <div class="sub">Já registadas como pagas</div>
+          </div>
+          <div class="stat-card amarelo">
+            <div class="stat-icon">⏳</div>
+            <div class="label">Comissões Pendentes</div>
+            <div class="value" id="sfPendentes">—</div>
+            <div class="sub">Aguardam confirmação</div>
+          </div>
+          <div class="stat-card azul">
+            <div class="stat-icon">🏗️</div>
+            <div class="label">Total Engenheiros</div>
+            <div class="value" id="sfEngenheiros">—</div>
+            <div class="sub">Valor líquido a pagar</div>
+          </div>
+        </div>
+
+        <!-- Tabela de comissões por tipo -->
+        <div class="table-card" style="margin-bottom:1.5rem;padding:1.2rem 1.5rem">
+          <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:800;margin-bottom:1rem">
+            📊 Comissões por Tipo de Profissional
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem" id="tabelaTipos">
+            <!-- preenchido via JS -->
+          </div>
+        </div>
+
+        <!-- Transações -->
+        <div class="panel-header">
+          <h2>Registo de Transações</h2>
+          <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+            <span class="pill active" onclick="filtrarTransacoes('todos',this)">Todas</span>
+            <span class="pill" onclick="filtrarTransacoes('pendente',this)">Pendentes</span>
+            <span class="pill" onclick="filtrarTransacoes('confirmado',this)">Confirmadas</span>
+            <span class="pill" onclick="filtrarTransacoes('cancelado',this)">Canceladas</span>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>Pedido</th>
+                <th>Engenheiro</th>
+                <th>Tipo</th>
+                <th>Valor Total</th>
+                <th>Comissão</th>
+                <th>Engenheiro Recebe</th>
+                <th>Status</th>
+                <th>Acções</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyTransacoes"></tbody>
+          </table>
+        </div>
+      </div><!-- /panel-financeiro -->
+
     </div><!-- /content -->
   </main>
 
@@ -540,48 +614,57 @@
       { pedido_id: 'PED-301244', engenheiro: 'Eng. Marco Sitoe', valor: 900000, prazo: '2 meses', status: 'aceite' },
       { pedido_id: 'PED-445613', engenheiro: 'Eng. Carlos Matos', valor: 7000000, prazo: '8 meses', status: 'pendente' },
     ];
-    const engsDemo = [
-      { nome: 'Carlos Matos', especialidade: 'Eng. Civil', telefone: '87 123 4567', propostas: 2, status: 'verificado' },
-      { nome: 'Beatriz Lima', especialidade: 'Arquitectura', telefone: '84 987 6543', propostas: 1, status: 'verificado' },
-      { nome: 'Marco Sitoe', especialidade: 'Eng. Civil', telefone: '86 555 1234', propostas: 1, status: 'verificado' },
-      { nome: 'Ana Fumo', especialidade: 'Eng. Hidráulica', telefone: '82 444 9876', propostas: 0, status: 'pendente' },
-    ];
+    const engsDemo = []; // sem dados fictícios — usar apenas dados reais da API
 
     const token = localStorage.getItem('token') || localStorage.getItem('authToken');
-    const BASE   = window.API_BASE || 'http://localhost:3000';
+    // BASE: usa API_URL do config.js (remove /api), ou fallback
+    const BASE = (typeof API_URL !== 'undefined')
+      ? API_URL.replace('/api', '')
+      : (window.API_BASE || 'http://localhost:3000');
 
     async function carregarDados() {
       const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+      // Pedidos e propostas
       try {
-        const [r1, r2, r3] = await Promise.all([
+        const [r1, r2] = await Promise.all([
           fetch(`${BASE}/api/pedidos`),
-          fetch(`${BASE}/api/propostas`, { headers }),
-          fetch(`${BASE}/api/admin/usuarios`, { headers })
+          fetch(`${BASE}/api/propostas`, { headers })
         ]);
         pedidosData   = r1.ok ? await r1.json() : pedidosDemo;
         propostasData = r2.ok ? await r2.json() : propostasDemo;
-        if (r3.ok) {
-          const todos = await r3.json();
-          // Filtrar só engenheiros/empresas
-          engsData = todos
-            .filter(u => ['senior','junior','empresa'].includes(u.tipo) || ['senior','junior','empresa'].includes(u.role))
-            .map(u => ({
-              id:           u.id,
-              nome:         u.nome,
-              email:        u.email,
-              especialidade: u.tipo === 'empresa' ? 'Empresa' : u.tipo === 'senior' ? 'Eng. Sénior' : 'Eng. Júnior',
-              telefone:     u.telefone || '—',
-              propostas:    0,
-              status:       u.status === 'aprovado' ? 'verificado' : 'pendente'
-            }));
-        } else {
-          engsData = engsDemo;
-        }
       } catch(e) {
         pedidosData   = pedidosDemo;
         propostasData = propostasDemo;
-        engsData      = engsDemo;
       }
+
+      // Engenheiros — separado para melhor diagnóstico
+      try {
+        const r3 = await fetch(`${BASE}/api/admin/usuarios`, { headers });
+        if (r3.ok) {
+          const todos = await r3.json();
+          engsData = todos
+            .filter(u => ['senior','junior','empresa'].includes(u.tipo) ||
+                         ['senior','junior','empresa'].includes(u.role))
+            .map(u => ({
+              id:            u.id,
+              nome:          u.nome,
+              email:         u.email,
+              especialidade: u.tipo === 'empresa' ? 'Empresa' :
+                             u.tipo === 'senior'  ? 'Eng. Sénior' : 'Eng. Júnior',
+              telefone:      u.telefone || '—',
+              propostas:     0,
+              status:        u.status === 'aprovado' ? 'verificado' : 'pendente'
+            }));
+        } else {
+          console.error('Admin API error:', r3.status, await r3.text());
+          engsData = [];  // lista vazia em vez de fictícios
+        }
+      } catch(e) {
+        console.error('Erro ao carregar engenheiros:', e);
+        engsData = [];   // lista vazia em vez de fictícios
+      }
+
       renderAll();
     }
 
@@ -664,7 +747,10 @@
     function renderEngenheiros() {
       const tbody = document.getElementById('tbodyEngenheiros');
       if (!engsData.length) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#ccc;padding:2rem">Sem engenheiros registados</td></tr>';
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem">
+          <div style="color:#aaa;font-size:13px">Nenhum engenheiro registado ainda.<br>
+          <span style="font-size:12px;color:#ccc">Quando um engenheiro se cadastrar, aparecerá aqui.</span></div>
+        </td></tr>`;
         return;
       }
       tbody.innerHTML = engsData.map(e => `
@@ -819,6 +905,129 @@
     }
 
     carregarDados();
+
+    // ── FINANCEIRO ──
+    let transacoesData = [];
+    let filtroTransacao = 'todos';
+
+    async function carregarFinanceiro() {
+      await Promise.all([carregarResumoFinanceiro(), carregarTransacoes()]);
+    }
+
+    async function carregarResumoFinanceiro() {
+      try {
+        const res = await fetch(`${BASE}/api/admin/financeiro`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) return;
+        const d = await res.json();
+        document.getElementById('sfVolume').textContent      = fmtMZN(d.volume_total);
+        document.getElementById('sfConfirmadas').textContent = fmtMZN(d.comissoes_confirmadas);
+        document.getElementById('sfPendentes').textContent   = fmtMZN(d.comissoes_pendentes);
+        document.getElementById('sfEngenheiros').textContent = fmtMZN(d.total_engenheiros);
+
+        // Por tipo
+        const pcts = { empresa: 8, senior: 5, junior: 3 };
+        const cores = { empresa: '#D85A30', senior: '#3B6D11', junior: '#1D5FAD' };
+        const labels = { empresa: 'Empresa (8%)', senior: 'Eng. Sénior (5%)', junior: 'Eng. Júnior (3%)' };
+        const tipos = d.por_tipo || [];
+        const tabelaTipos = document.getElementById('tabelaTipos');
+        ['empresa','senior','junior'].forEach(tipo => {
+          const t = tipos.find(x => x.engenheiro_tipo === tipo) || {};
+          tabelaTipos.innerHTML += `
+            <div style="background:#F1EFE8;border-radius:10px;padding:1rem;border-left:4px solid ${cores[tipo]}">
+              <div style="font-size:12px;color:#888;margin-bottom:4px">${labels[tipo]}</div>
+              <div style="font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:800;color:${cores[tipo]}">${t.total || 0} transações</div>
+              <div style="font-size:12px;color:#666;margin-top:4px">Volume: ${fmtMZN(t.volume || 0)}</div>
+              <div style="font-size:12px;color:#666">Comissão: ${fmtMZN(t.comissao || 0)}</div>
+            </div>`;
+        });
+      } catch(e) { console.error(e); }
+    }
+
+    async function carregarTransacoes() {
+      try {
+        const url = filtroTransacao === 'todos'
+          ? `${BASE}/api/admin/transacoes`
+          : `${BASE}/api/admin/transacoes?status=${filtroTransacao}`;
+        const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+        if (!res.ok) return;
+        transacoesData = await res.json();
+        renderTransacoes();
+      } catch(e) { console.error(e); }
+    }
+
+    function filtrarTransacoes(status, el) {
+      filtroTransacao = status;
+      document.querySelectorAll('#panel-financeiro .pill').forEach(p => p.classList.remove('active'));
+      el.classList.add('active');
+      carregarTransacoes();
+    }
+
+    function renderTransacoes() {
+      const tbody = document.getElementById('tbodyTransacoes');
+      if (!transacoesData.length) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#ccc;padding:2rem">Sem transações registadas</td></tr>';
+        return;
+      }
+      tbody.innerHTML = transacoesData.map(t => {
+        const statusMap = {
+          pendente:   '<span class="status-badge status-propostas">⏳ Pendente</span>',
+          confirmado: '<span class="status-badge status-fechado">✅ Confirmado</span>',
+          cancelado:  '<span class="status-badge" style="background:#FEF2F2;color:#DC2626">✕ Cancelado</span>'
+        };
+        const tipoLabel = { empresa: '🏢 Empresa (8%)', senior: '👷 Sénior (5%)', junior: '🌱 Júnior (3%)' };
+        return `<tr>
+          <td class="td-id">${t.pedido_codigo || '—'}<br><span style="font-size:11px;color:#aaa">${t.pedido_tipo || ''} · ${t.pedido_local || ''}</span></td>
+          <td class="td-nome">${t.engenheiro_nome || '—'}</td>
+          <td style="font-size:12px">${tipoLabel[t.engenheiro_tipo] || t.engenheiro_tipo}</td>
+          <td style="font-weight:700">${fmtMZN(t.valor_total)}</td>
+          <td style="color:#D85A30;font-weight:700">${fmtMZN(t.valor_comissao)} <span style="font-size:11px;color:#aaa">(${t.percentagem_comissao}%)</span></td>
+          <td style="color:#3B6D11;font-weight:700">${fmtMZN(t.valor_engenheiro)}</td>
+          <td>${statusMap[t.status] || t.status}</td>
+          <td class="td-actions">
+            ${t.status === 'pendente' ? `
+              <button class="btn-action success" onclick="confirmarTransacao(${t.id})">✓ Confirmar</button>
+              <button class="btn-action danger"  onclick="cancelarTransacao(${t.id})">✕ Cancelar</button>
+            ` : '—'}
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    async function confirmarTransacao(id) {
+      if (!confirm('Confirmar esta transação? Indica que a comissão foi registada.')) return;
+      try {
+        await fetch(`${BASE}/api/admin/transacoes/${id}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${token}` },
+          body: JSON.stringify({ status: 'confirmado' })
+        });
+        mostrarToast('✅ Transação confirmada!');
+        carregarTransacoes();
+      } catch(e) { mostrarToast('❌ Erro ao confirmar.'); }
+    }
+
+    async function cancelarTransacao(id) {
+      if (!confirm('Cancelar esta transação?')) return;
+      try {
+        await fetch(`${BASE}/api/admin/transacoes/${id}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${token}` },
+          body: JSON.stringify({ status: 'cancelado' })
+        });
+        mostrarToast('Transação cancelada.');
+        carregarTransacoes();
+      } catch(e) { mostrarToast('❌ Erro ao cancelar.'); }
+    }
+
+    // Carregar financeiro ao abrir o painel
+    const origShowPanel = showPanel;
+    function showPanel(id, el) {
+      origShowPanel(id, el);
+      if (id === 'financeiro') carregarFinanceiro();
+    }
+
   </script>
 </body>
 </html>
