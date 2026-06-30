@@ -598,6 +598,8 @@
       document.getElementById(`panel-${id}`).classList.add('active');
       if (el) el.classList.add('active');
       document.getElementById('topTitle').textContent = el?.querySelector('span:not(.icon)')?.textContent?.trim() || 'Admin';
+      // Carregar dados específicos de cada painel
+      if (id === 'financeiro') carregarFinanceiro();
     }
 
     // Demo data
@@ -1021,12 +1023,7 @@
       } catch(e) { mostrarToast('❌ Erro ao cancelar.'); }
     }
 
-    // Carregar financeiro ao abrir o painel
-    const origShowPanel = showPanel;
-    function showPanel(id, el) {
-      origShowPanel(id, el);
-      if (id === 'financeiro') carregarFinanceiro();
-    }
+    // showPanel já inclui carregarFinanceiro — ver definição acima
 
   </script>
 </body>
