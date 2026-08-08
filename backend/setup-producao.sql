@@ -182,3 +182,4 @@ VALUES (
 
 -- Confirmar
 SELECT id, nome, email, role, status FROM usuarios;
+

@@ -7,6 +7,7 @@
   <title>OBRAVIA — Plataforma de Engenheiros</title>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/navbar-mobile-patch.css">
   <style>
     /* Notificações */
     .btn-notificacoes {
@@ -154,6 +155,9 @@
         <img src="img/OBRAVIA.jpeg" alt="Logo OBRAVIA">
       </div>
       <div class="welcomen-user" id="bemVindo">Bem-vindo, Visitante</div>
+      <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
       <ul class="nav-links" id="navLinks">
         <!-- itens injectados por atualizarNavbar() -->
         <li><a href="sobre.html" class="btn-sobre">Sobre</a></li>
@@ -207,6 +211,9 @@
       <!-- Pedidos carregados via JavaScript -->
     </div>
   </section>
+
+  <!-- MENU OVERLAY -->
+  <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
 
   <!-- FOOTER -->
   <footer>
@@ -286,5 +293,26 @@
 
   <script src="js/config.js"></script>
   <script src="js/script.js"></script>
+  <script>
+    function toggleMenu() {
+      const nav     = document.getElementById('navLinks');
+      const btn     = document.getElementById('hamburger');
+      const overlay = document.getElementById('menuOverlay');
+      const aberto  = nav.classList.toggle('aberto');
+      btn.classList.toggle('ativo', aberto);
+      if (overlay) overlay.classList.toggle('visivel', aberto);
+    }
+    // Fechar menu ao clicar num link do menu
+    document.querySelectorAll('#navLinks a').forEach(function(a) {
+      a.addEventListener('click', function() {
+        const nav     = document.getElementById('navLinks');
+        const btn     = document.getElementById('hamburger');
+        const overlay = document.getElementById('menuOverlay');
+        nav.classList.remove('aberto');
+        btn.classList.remove('ativo');
+        if (overlay) overlay.classList.remove('visivel');
+      });
+    });
+  </script>
 </body>
 </html>
