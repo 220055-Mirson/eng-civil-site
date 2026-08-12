@@ -150,14 +150,12 @@
       </div>
       <div class="nivel-body">
         <ul class="documentos-lista">
-          <li>Número de membro da Ordem dos Engenheiros de Moçambique</li>
-          <li>Cédula profissional ativa e válida</li>
-          <li>Diploma de Engenharia (reconhecido pelo INNOQ)</li>
+          <li>Diploma de Engenharia (reconhecido)</li>
           <li>Portfólio de projetos realizados</li>
         </ul>
-        <div class="badge-status badge-verificacao">✓ Verificação pela Ordem</div>
+        <div class="badge-status badge-verificacao">✓ Verificação documental</div>
         <button class="btn-cadastrar btn-senior" onclick="abrirModal('senior')">Cadastrar como Eng. Sénior</button>
-        <p style="font-size: 0.7rem; margin-top: 0.8rem; color: #888;">*Verificação automática com a Ordem dos Engenheiros</p>
+        <p style="font-size: 0.7rem; margin-top: 0.8rem; color: #888;">*Documentos verificados pelo administrador OBRAVIA</p>
       </div>
     </div>
 
@@ -165,16 +163,15 @@
     <div class="nivel-card nivel-junior">
       <div class="nivel-header">
         <div class="nivel-numero">NÍVEL 3</div>
-        <h2>Eng. Junior</h2>
+        <h2>Engenheiro Junior</h2>
         <p>Engenheiro Júnior com potencial e formação verificada</p>
       </div>
       <div class="nivel-body">
         <ul class="documentos-lista">
-          <li>Diploma verificado</li>
+          <li>Diploma de engenharia (reconhecido)</li>
           <li>Perfil identificado como "Engenheiro Júnior"</li>
           <li>Até 3 anos de experiência</li>
         </ul>
-        <div class="badge-status badge-junior">🌟 Secção "Talentos em Crescimento"</div>
         <button class="btn-cadastrar btn-junior" onclick="abrirModal('junior')">Cadastrar como Júnior</button>
         <p style="font-size: 0.7rem; margin-top: 0.8rem; color: #888;">*Perfil público separado com regras próprias</p>
       </div>
@@ -182,32 +179,7 @@
   </div>
 
   <!-- SECÇÃO TALENTOS EM CRESCIMENTO -->
-  <div class="talentos-section">
-    <div class="talentos-header">
-      <h2>🌟 Talentos em Crescimento</h2>
-      <p>Secção especial para engenheiros juniores com regras próprias e transparência total</p>
-    </div>
-    <div class="regras-grid">
-      <div class="regra-card">
-        <div class="regra-icon">📜</div>
-        <h4>Entrada Verificada</h4>
-        <p>Cédula da Ordem válida + Diploma reconhecido</p>
-      </div>
-      <div class="regra-card">
-        <div class="regra-icon">🏷️</div>
-        <h4>Identificação Clara</h4>
-        <p>Perfil marcado como "Engenheiro Júnior" para total transparência</p>
-      </div>
-      <div class="regra-card">
-        <div class="regra-icon">📊</div>
-        <h4>Acompanhamento</h4>
-        <p>Projetos com selo "Supervisionado" quando orientado por sénior</p>
-      </div>
-    </div>
-    <p style="text-align: center; font-size: 0.85rem; color: #5F5E5A; margin-top: 1rem;">
-      ⚡ Engenheiros juniores aparecem exclusivamente na secção "Talentos em Crescimento" — não misturados com os seniores, garantindo transparência para o cliente.
-    </p>
-  </div>
+  
 </div>
 
 <!-- MODAL EMPRESA -->
@@ -299,18 +271,9 @@
         <label>Confirmar Senha <span>*</span></label>
         <input type="password" id="seniorConfirmarSenha" required>
       </div>
-      <div class="form-group">
-        <label>Número de Membro da Ordem <span>*</span></label>
-        <input type="text" id="seniorOrdem" required placeholder="OEM-XXXXX">
-      </div>
-      <div class="form-group">
-        <label>Cédula Profissional <span>*</span></label>
-        <input type="text" id="seniorCedulaNumero" required>
-      </div>
-      <div class="form-group">
-        <label>Data de Validade da Cédula</label>
-        <input type="date" id="seniorValidade">
-      </div>
+
+
+
       <div class="form-group">
         <label>Upload do Diploma <span>*</span></label>
         <div class="upload-area" id="uploadDiploma" onclick="document.getElementById('diplomaInput').click()">
@@ -319,14 +282,7 @@
         <input type="file" id="diplomaInput" style="display: none;" accept="image/*,application/pdf">
         <div id="diplomaNome" class="file-name"></div>
       </div>
-      <div class="form-group">
-        <label>Upload da Cédula Profissional <span>*</span></label>
-        <div class="upload-area" id="uploadCedula" onclick="document.getElementById('cedulaInput').click()">
-          📎 Anexar cédula
-        </div>
-        <input type="file" id="cedulaInput" style="display: none;" accept="image/*,application/pdf">
-        <div id="cedulaNome" class="file-name"></div>
-      </div>
+
       <div class="form-group">
         <label>Anos de Experiência</label>
         <select id="seniorExperiencia">
@@ -335,7 +291,7 @@
           <option value="10+">10+ anos</option>
         </select>
       </div>
-      <button type="button" class="btn-submit" onclick="enviarCadastro('senior')">Verificar na Ordem</button>
+      <button type="button" class="btn-submit" onclick="enviarCadastro('senior')">Enviar para Verificação</button>
       <div class="aprovacao-note">
         ⏳ O seu pedido será analisado pelo administrador da OBRAVIA. Receberá acesso após aprovação.
       </div>
@@ -371,14 +327,8 @@
         <label>Confirmar Senha <span>*</span></label>
         <input type="password" id="juniorConfirmarSenha" required>
       </div>
-      <div class="form-group">
-        <label>Número da Ordem dos Engenheiros <span>*</span></label>
-        <input type="text" id="juniorOrdem" required placeholder="OEM-XXXXX">
-      </div>
-      <div class="form-group">
-        <label>Cédula Profissional <span>*</span></label>
-        <input type="text" id="juniorCedulaNumero" required>
-      </div>
+
+
       <div class="form-group">
         <label>Upload do Diploma <span>*</span></label>
         <div class="upload-area" id="uploadJuniorDiploma" onclick="document.getElementById('juniorDiplomaInput').click()">
@@ -387,14 +337,7 @@
         <input type="file" id="juniorDiplomaInput" style="display: none;" accept="image/*,application/pdf">
         <div id="juniorDiplomaNome" class="file-name"></div>
       </div>
-      <div class="form-group">
-        <label>Upload da Cédula Profissional <span>*</span></label>
-        <div class="upload-area" id="uploadJuniorCedula" onclick="document.getElementById('juniorCedulaInput').click()">
-          📎 Anexar cédula
-        </div>
-        <input type="file" id="juniorCedulaInput" style="display: none;" accept="image/*,application/pdf">
-        <div id="juniorCedulaNome" class="file-name"></div>
-      </div>
+
       <div class="form-group">
         <label>Área de Especialização</label>
         <select id="juniorEspecializacao">

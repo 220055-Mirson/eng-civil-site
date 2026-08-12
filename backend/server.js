@@ -114,12 +114,12 @@ app.post('/api/cadastro/senior',
     upload.fields([{ name: 'diploma', maxCount: 1 }]),
     async (req, res) => {
         try {
-            const { nome, email, senha, numero_ordem, anos_experiencia, data_validade_ordem } = req.body;
-            if (!nome || !email || !senha || !numero_ordem)
-                return erro(res, 400, 'Nome, email, senha e número da ordem são obrigatórios');
+            const { nome, email, senha, anos_experiencia } = req.body;
+            if (!nome || !email || !senha)
+                return erro(res, 400, 'Nome, email e senha são obrigatórios');
 
             const diploma_path = req.files?.diploma?.[0]?.path || '';
-            const id = await db.cadastrarSenior({ nome, email, senha, numero_ordem, diploma_path, anos_experiencia, data_validade_ordem });
+            const id = await db.cadastrarSenior({ nome, email, senha, diploma_path, anos_experiencia });
             res.json({ success: true, message: 'Engenheiro Sénior cadastrado! Aguarde verificação.', id });
         } catch (e) {
             console.error(e);
@@ -133,12 +133,12 @@ app.post('/api/cadastro/junior',
     upload.fields([{ name: 'diploma', maxCount: 1 }]),
     async (req, res) => {
         try {
-            const { nome, email, senha, numero_ordem, especializacao, linkedin } = req.body;
-            if (!nome || !email || !senha || !numero_ordem)
-                return erro(res, 400, 'Nome, email, senha e número da ordem são obrigatórios');
+            const { nome, email, senha, especializacao, linkedin } = req.body;
+            if (!nome || !email || !senha)
+                return erro(res, 400, 'Nome, email e senha são obrigatórios');
 
             const diploma_path = req.files?.diploma?.[0]?.path || '';
-            const id = await db.cadastrarJunior({ nome, email, senha, numero_ordem, diploma_path, especializacao, linkedin });
+            const id = await db.cadastrarJunior({ nome, email, senha, diploma_path, especializacao, linkedin });
             res.json({ success: true, message: 'Engenheiro Júnior cadastrado!', id });
         } catch (e) {
             console.error(e);
@@ -496,6 +496,60 @@ app.delete('/api/admin/pedidos/:id', autenticar, apenasAdmin, async (req, res) =
     try {
         await db.eliminarPedido(req.params.id);
         res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ════════════════════════════════════════════
+//  TRANSAÇÕES / COMISSÕES
+// ════════════════════════════════════════════
+
+// Listar transações (admin)
+app.get('/api/admin/transacoes', autenticar, apenasAdmin, async (req, res) => {
+    try {
+        const transacoes = await db.listarTransacoes(req.query);
+        res.json(transacoes);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Resumo financeiro (admin)
+app.get('/api/admin/financeiro', autenticar, apenasAdmin, async (_req, res) => {
+    try {
+        const resumo = await db.resumoFinanceiro();
+        res.json(resumo);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Actualizar status de transação (admin confirma/cancela)
+app.patch('/api/admin/transacoes/:id/status', autenticar, apenasAdmin, async (req, res) => {
+    try {
+        const { status, notas } = req.body;
+        const validos = ['pendente', 'confirmado', 'cancelado'];
+        if (!validos.includes(status)) return erro(res, 400, 'Status inválido');
+        await db.atualizarStatusTransacao(req.params.id, status, notas);
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Criar transação manual (admin)
+app.post('/api/admin/transacoes', autenticar, apenasAdmin, async (req, res) => {
+    try {
+        const { proposta_id, pedido_id, engenheiro_id, engenheiro_nome,
+                engenheiro_tipo, valor_total, notas } = req.body;
+        if (!proposta_id || !pedido_id || !valor_total)
+            return erro(res, 400, 'proposta_id, pedido_id e valor_total são obrigatórios');
+        const result = await db.criarTransacao({
+            proposta_id, pedido_id, engenheiro_id, engenheiro_nome,
+            engenheiro_tipo, valor_total: parseFloat(valor_total), notas
+        });
+        res.status(201).json({ success: true, ...result });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Transações do engenheiro autenticado
+app.get('/api/minhas-transacoes', autenticar, async (req, res) => {
+    try {
+        const transacoes = await db.transacoesPorEngenheiro(req.usuario.id);
+        res.json(transacoes);
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 

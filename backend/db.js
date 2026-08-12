@@ -157,6 +157,7 @@ async function inicializarBanco() {
     await run(`CREATE INDEX IF NOT EXISTS idx_propostas_eng     ON propostas(engenheiro_id)`);
     await run(`CREATE INDEX IF NOT EXISTS idx_sessoes_token     ON sessoes(token)`);
 
+    await criarTabelaTransacoes();
     await criarTabelaPedidosDirectos();
     await criarTabelaMensagens();
     console.log('✅ Banco PostgreSQL inicializado com sucesso!');
@@ -183,29 +184,27 @@ async function cadastrarEmpresa(dados) {
 }
 
 async function cadastrarSenior(dados) {
-    const { nome, email, senha, numero_ordem, diploma_path,
-            anos_experiencia, data_validade_ordem } = dados;
+    const { nome, email, senha, diploma_path, anos_experiencia } = dados;
     const senhaHash = await bcrypt.hash(senha, 10);
     const res = await run(
         `INSERT INTO usuarios
-            (nome, email, senha, role, status, tipo, numero_ordem, diploma_path, anos_experiencia)
-         VALUES ($1,$2,$3,'senior','pendente','senior',$4,$5,$6)
+            (nome, email, senha, role, status, tipo, diploma_path, anos_experiencia)
+         VALUES ($1,$2,$3,'senior','pendente','senior',$4,$5)
          RETURNING id`,
-        [nome, email, senhaHash, numero_ordem, diploma_path, anos_experiencia]
+        [nome, email, senhaHash, diploma_path, anos_experiencia]
     );
     return res.rows[0].id;
 }
 
 async function cadastrarJunior(dados) {
-    const { nome, email, senha, numero_ordem, diploma_path,
-            especializacao, linkedin } = dados;
+    const { nome, email, senha, diploma_path, especializacao, linkedin } = dados;
     const senhaHash = await bcrypt.hash(senha, 10);
     const res = await run(
         `INSERT INTO usuarios
-            (nome, email, senha, role, status, tipo, numero_ordem, diploma_path, especializacao, linkedin)
-         VALUES ($1,$2,$3,'junior','pendente','junior',$4,$5,$6,$7)
+            (nome, email, senha, role, status, tipo, diploma_path, especializacao, linkedin)
+         VALUES ($1,$2,$3,'junior','pendente','junior',$4,$5,$6)
          RETURNING id`,
-        [nome, email, senhaHash, numero_ordem, diploma_path, especializacao, linkedin]
+        [nome, email, senhaHash, diploma_path, especializacao, linkedin]
     );
     return res.rows[0].id;
 }
@@ -486,7 +485,7 @@ async function aceitarProposta(proposta_id) {
     const prop = await getOne('SELECT * FROM propostas WHERE id = $1', [proposta_id]);
     if (!prop) throw new Error('Proposta não encontrada.');
 
-    // Aceitar esta
+    // Aceitar esta proposta
     await run(
         "UPDATE propostas SET status='aceite', atualizado_em=NOW() WHERE id=$1",
         [proposta_id]
@@ -501,6 +500,20 @@ async function aceitarProposta(proposta_id) {
         "UPDATE pedidos SET status='fechado', atualizado_em=NOW() WHERE id=$1",
         [prop.pedido_id]
     );
+
+    // Criar transação automaticamente se houver valor definido na proposta
+    if (prop.valor) {
+        const eng = await getOne('SELECT * FROM usuarios WHERE id = $1', [prop.engenheiro_id]);
+        const tipo = eng?.tipo || 'senior';
+        await criarTransacao({
+            proposta_id:     prop.id,
+            pedido_id:       prop.pedido_id,
+            engenheiro_id:   prop.engenheiro_id,
+            engenheiro_nome: prop.engenheiro_nome,
+            engenheiro_tipo: tipo,
+            valor_total:     parseFloat(prop.valor)
+        });
+    }
 }
 
 async function rejeitarProposta(proposta_id) {
@@ -646,6 +659,118 @@ async function contarPedidosDirectosNovos(engenheiro_id) {
 //  MENSAGENS / CHAT
 // ════════════════════════════════════════════
 
+// ════════════════════════════════════════════
+//  TRANSAÇÕES / COMISSÕES
+// ════════════════════════════════════════════
+
+async function criarTabelaTransacoes() {
+    await run(`
+        CREATE TABLE IF NOT EXISTS transacoes (
+            id                  SERIAL PRIMARY KEY,
+            proposta_id         INTEGER NOT NULL REFERENCES propostas(id) ON DELETE CASCADE,
+            pedido_id           INTEGER NOT NULL REFERENCES pedidos(id) ON DELETE CASCADE,
+            engenheiro_id       INTEGER REFERENCES usuarios(id) ON DELETE SET NULL,
+            engenheiro_nome     TEXT,
+            engenheiro_tipo     TEXT,           -- empresa | senior | junior
+            valor_total         NUMERIC(15,2) NOT NULL,
+            percentagem_comissao NUMERIC(5,2) NOT NULL,
+            valor_comissao      NUMERIC(15,2) NOT NULL,
+            valor_engenheiro    NUMERIC(15,2) NOT NULL,
+            status              TEXT DEFAULT 'pendente',  -- pendente | confirmado | cancelado
+            notas               TEXT,
+            criado_em           TIMESTAMPTZ DEFAULT NOW(),
+            atualizado_em       TIMESTAMPTZ DEFAULT NOW()
+        )
+    `);
+    await run(`CREATE INDEX IF NOT EXISTS idx_transacoes_proposta   ON transacoes(proposta_id)`);
+    await run(`CREATE INDEX IF NOT EXISTS idx_transacoes_engenheiro ON transacoes(engenheiro_id)`);
+    await run(`CREATE INDEX IF NOT EXISTS idx_transacoes_status     ON transacoes(status)`);
+}
+
+function calcularComissao(tipo, valorTotal) {
+    const percentagens = { empresa: 8, senior: 5, junior: 3 };
+    const pct   = percentagens[tipo] || 5;
+    const comissao   = (valorTotal * pct) / 100;
+    const engenheiro = valorTotal - comissao;
+    return { percentagem: pct, comissao: parseFloat(comissao.toFixed(2)), engenheiro: parseFloat(engenheiro.toFixed(2)) };
+}
+
+async function criarTransacao(dados) {
+    const { proposta_id, pedido_id, engenheiro_id, engenheiro_nome, engenheiro_tipo, valor_total, notas } = dados;
+    const { percentagem, comissao, engenheiro } = calcularComissao(engenheiro_tipo, valor_total);
+
+    const res = await run(
+        `INSERT INTO transacoes
+            (proposta_id, pedido_id, engenheiro_id, engenheiro_nome, engenheiro_tipo,
+             valor_total, percentagem_comissao, valor_comissao, valor_engenheiro, status, notas)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'pendente',$10) RETURNING id`,
+        [proposta_id, pedido_id, engenheiro_id || null, engenheiro_nome, engenheiro_tipo || 'senior',
+         valor_total, percentagem, comissao, engenheiro, notas || null]
+    );
+    return { id: res.rows[0].id, percentagem, comissao, engenheiro };
+}
+
+async function listarTransacoes(filtros = {}) {
+    let sql = `
+        SELECT t.*,
+               p.codigo AS pedido_codigo, p.tipo AS pedido_tipo, p.local AS pedido_local,
+               pr.prazo AS proposta_prazo
+        FROM transacoes t
+        JOIN pedidos  p  ON p.id  = t.pedido_id
+        JOIN propostas pr ON pr.id = t.proposta_id
+    `;
+    const where  = [];
+    const params = [];
+
+    if (filtros.status) { params.push(filtros.status); where.push(`t.status = $${params.length}`); }
+    if (filtros.engenheiro_id) { params.push(filtros.engenheiro_id); where.push(`t.engenheiro_id = $${params.length}`); }
+    if (where.length) sql += ' WHERE ' + where.join(' AND ');
+    sql += ' ORDER BY t.criado_em DESC';
+
+    return getAll(sql, params);
+}
+
+async function resumoFinanceiro() {
+    const r = await getOne(`
+        SELECT
+            COUNT(*)                                              AS total_transacoes,
+            COALESCE(SUM(valor_total),0)                         AS volume_total,
+            COALESCE(SUM(valor_comissao),0)                      AS total_comissoes,
+            COALESCE(SUM(valor_engenheiro),0)                    AS total_engenheiros,
+            COALESCE(SUM(CASE WHEN status='confirmado' THEN valor_comissao END),0) AS comissoes_confirmadas,
+            COALESCE(SUM(CASE WHEN status='pendente'   THEN valor_comissao END),0) AS comissoes_pendentes
+        FROM transacoes
+    `);
+    const porTipo = await getAll(`
+        SELECT engenheiro_tipo,
+               COUNT(*) AS total,
+               SUM(valor_total) AS volume,
+               SUM(valor_comissao) AS comissao,
+               AVG(percentagem_comissao) AS pct_media
+        FROM transacoes
+        GROUP BY engenheiro_tipo
+    `);
+    return { ...r, por_tipo: porTipo };
+}
+
+async function atualizarStatusTransacao(id, status, notas) {
+    await run(
+        `UPDATE transacoes SET status=$1, notas=COALESCE($2, notas), atualizado_em=NOW() WHERE id=$3`,
+        [status, notas || null, id]
+    );
+}
+
+async function transacoesPorEngenheiro(engenheiro_id) {
+    return getAll(
+        `SELECT t.*, p.codigo AS pedido_codigo, p.tipo AS pedido_tipo
+         FROM transacoes t
+         JOIN pedidos p ON p.id = t.pedido_id
+         WHERE t.engenheiro_id = $1
+         ORDER BY t.criado_em DESC`,
+        [engenheiro_id]
+    );
+}
+
 async function criarTabelaMensagens() {
     await run(`
         CREATE TABLE IF NOT EXISTS mensagens (
@@ -790,6 +915,13 @@ module.exports = {
 
     // Admin
     estatisticasAdmin,
+
+    // Transações / Comissões
+    criarTransacao,
+    listarTransacoes,
+    resumoFinanceiro,
+    atualizarStatusTransacao,
+    transacoesPorEngenheiro,
 
     // Pedidos directos
     criarPedidoDirecto,
