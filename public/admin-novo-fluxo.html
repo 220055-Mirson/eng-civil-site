@@ -253,6 +253,68 @@
       text-align: center; padding: 2rem;
       font-size: 12px; color: #ccc;
     }
+    /* ── RESPONSIVIDADE MOBILE & MENU SANDUICHE ── */
+    @media (max-width: 768px) {
+      body { flex-direction: column; }
+      .admin-sidebar {
+        position: fixed; left: 0; top: 0; bottom: 0;
+        width: 75%; max-width: 320px;
+        transform: translateX(-100%);
+        transition: transform .28s ease;
+        z-index: 200;
+        min-height: 100vh;
+      }
+      body.sidebar-open .admin-sidebar { transform: translateX(0); box-shadow: 8px 0 24px rgba(0,0,0,0.15); }
+      .admin-main { margin-top: 0; }
+      .top-bar { padding: 0 1rem; height: 56px; }
+      .top-bar h1 { font-size: 1rem; }
+      .content { padding: 1rem; }
+      .stats-grid { grid-template-columns: 1fr; }
+      .fluxo-board { grid-template-columns: 1fr; }
+      .search-input { width: 100%; }
+      .sidebar-footer { display: none; }
+      .sidebar-logo { padding: 1rem; display:flex; align-items:center; justify-content:space-between; }
+
+      /* Backdrop */
+      .sidebar-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.45); opacity: 0; visibility: hidden; transition: opacity .2s; z-index: 150; }
+      body.sidebar-open .sidebar-backdrop { opacity: 1; visibility: visible; }
+
+      /* Hamburger button in top-bar */
+      .hamburger-btn { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 8px; border: 1px solid var(--cinza-suave); background: var(--branco); cursor: pointer; margin-right: 0.5rem; }
+      .hamburger-icon { width: 18px; height: 2px; background: #444; position: relative; display: block; }
+      .hamburger-icon::before, .hamburger-icon::after { content: ''; position: absolute; left: 0; right: 0; height: 2px; background: #444; }
+      .hamburger-icon::before { top: -6px; }
+      .hamburger-icon::after { top: 6px; }
+      .hamburger-btn.open .hamburger-icon { background: transparent; }
+      .hamburger-btn.open .hamburger-icon::before { transform: rotate(45deg) translate(4px,4px); top: 0; }
+      .hamburger-btn.open .hamburger-icon::after { transform: rotate(-45deg) translate(4px,-4px); top: 0; }
+
+      /* Melhorias para garantir que todo o conteúdo seja visível em telas pequenas */
+      .admin-main { width: 100%; }
+      .top-bar { gap: 0.5rem; }
+      .top-bar-actions { margin-left: auto; display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap; }
+      .top-bar .admin-name { font-size: 12px; color:#777; }
+      .btn-refresh { padding: 6px 10px; font-size: 12px; }
+
+      /* Tornar cards e colunas mais compactos */
+      .stat-card { padding: 0.9rem 1rem; }
+      .stat-card .value { font-size: 1.4rem; }
+
+      /* Tornar tabelas responsivas: permitir quebra de linhas e scroll horizontal quando necessário */
+      .table-card { overflow: auto; }
+      table { min-width: 100%; table-layout: auto; }
+      thead th, td { padding: 0.6rem 0.8rem; font-size: 12px; }
+      td { white-space: normal; word-break: break-word; }
+
+      /* Kanban compacto em mobile */
+      .kanban-items { min-height: 120px; padding: 0.6rem; }
+      .kanban-item { padding: 0.6rem 0.8rem; font-size: 12px; }
+
+      /* Ajuste geral de espaçamentos para evitar corte de conteúdo */
+      .content { padding: 0.8rem; }
+      .panel-header h2 { font-size: 1rem; }
+      .panel-header { gap: 0.4rem; }
+    }
   </style>
 </head>
 <body>
@@ -307,6 +369,9 @@
   <!-- MAIN -->
   <main class="admin-main">
     <div class="top-bar">
+      <button class="hamburger-btn" id="hamburger" aria-label="Abrir menu">
+        <span class="hamburger-icon" aria-hidden="true"></span>
+      </button>
       <h1 id="topTitle">Dashboard</h1>
       <div class="top-bar-actions">
         <button class="btn-refresh" onclick="carregarDados()">↻ Actualizar</button>
@@ -583,6 +648,22 @@
 
   <script src="js/config.js"></script>
   <script>
+    // Mobile menu toggle (não altera estrutura existente)
+    (function(){
+      const btn = document.getElementById('hamburger');
+      if (!btn) return;
+      // criar backdrop
+      const backdrop = document.createElement('div'); backdrop.className = 'sidebar-backdrop'; document.body.appendChild(backdrop);
+      function open(){ document.body.classList.add('sidebar-open'); btn.classList.add('open'); }
+      function close(){ document.body.classList.remove('sidebar-open'); btn.classList.remove('open'); }
+      btn.addEventListener('click', function(e){ e.stopPropagation(); if (document.body.classList.contains('sidebar-open')) close(); else open(); });
+      backdrop.addEventListener('click', close);
+      // fechar menu quando mudar de painel (UX)
+      document.querySelectorAll('.nav-item').forEach(n => n.addEventListener('click', () => { if (window.innerWidth <= 768) close(); }));
+      // fechar ao redimensionar para desktop
+      window.addEventListener('resize', () => { if (window.innerWidth > 768) close(); });
+    })();
+
     let pedidosData = [], propostasData = [], engsData = [];
     let filtrosPedido = { texto: '', status: 'todos' };
 
@@ -1005,9 +1086,9 @@
           headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${token}` },
           body: JSON.stringify({ status: 'confirmado' })
         });
-        mostrarToast('✅ Transação confirmada!');
+        mostrarToast('Transação confirmada!');
         carregarTransacoes();
-      } catch(e) { mostrarToast('❌ Erro ao confirmar.'); }
+      } catch(e) { mostrarToast('Erro ao confirmar.'); }
     }
 
     async function cancelarTransacao(id) {
@@ -1020,7 +1101,7 @@
         });
         mostrarToast('Transação cancelada.');
         carregarTransacoes();
-      } catch(e) { mostrarToast('❌ Erro ao cancelar.'); }
+      } catch(e) { mostrarToast('Erro ao cancelar.'); }
     }
 
     // showPanel já inclui carregarFinanceiro — ver definição acima
