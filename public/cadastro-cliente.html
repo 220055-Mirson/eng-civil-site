@@ -51,7 +51,7 @@
 
     /* TOPO VERDE */
     .card-top {
-      background: linear-gradient(135deg, var(--laranja) 0%, #D85A30 100%);
+      background: linear-gradient(135deg, var(--verde) 0%, #4E8A16 100%);
       padding: 2rem 2rem 1.8rem;
       color: white;
       position: relative;
@@ -244,13 +244,13 @@
 
       if (forte) {
         [b1,b2,b3].forEach(b => b.classList.add('ativa','forte'));
-        lbl.textContent = 'Senha forte'; lbl.style.color = '#3B6D11';
+        lbl.textContent = '✅ Senha forte'; lbl.style.color = '#3B6D11';
       } else if (media) {
         b1.classList.add('ativa','media'); b2.classList.add('ativa','media');
-        lbl.textContent = 'Senha média'; lbl.style.color = '#B45309';
+        lbl.textContent = '⚠️ Senha média'; lbl.style.color = '#B45309';
       } else {
         b1.classList.add('ativa','fraca');
-        lbl.textContent = 'Senha fraca'; lbl.style.color = '#DC2626';
+        lbl.textContent = '❌ Senha fraca'; lbl.style.color = '#DC2626';
       }
     }
 
@@ -278,8 +278,8 @@
       btn.disabled = true;
 
       try {
-        const BASE = window.API_BASE || 'http://localhost:3000';
-        const res = await fetch(`${BASE}/api/cadastro/cliente`, {
+        const BASE = (typeof API_URL !== 'undefined' ? API_URL : 'http://localhost:3000/api');
+        const res = await fetch(`${BASE}/cadastro/cliente`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ nome, email, senha })

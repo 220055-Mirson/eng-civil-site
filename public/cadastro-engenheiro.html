@@ -2,314 +2,396 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="shortcut icon" href="img/LOGO.png" type="image/x-icon">
-  <title>OBRAVIA — Criar conta de Cliente</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>OBRAVIA — Verificação em 3 Níveis | Cadastro Profissional</title>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style-cadastro.css">
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --laranja: #D85A30; --laranja-escuro: #993C1D;
-      --laranja-claro: #FAECE7;
-      --cinza-claro: #F1EFE8; --cinza-texto: #444441;
-      --cinza-suave: #D3D1C7; --branco: #ffffff;
-      --verde: #3B6D11; --verde-claro: #EAF3DE;
+    /* ── Link de login no topo ── */
+    .login-bar {
+      background: #F1EFE8;
+      border-bottom: 1px solid #D3D1C7;
+      padding: 10px 2rem;
+      text-align: right;
+      font-size: 13px;
+      color: #666;
     }
+    .login-bar a {
+      color: #D85A30;
+      font-weight: 700;
+      text-decoration: none;
+      margin-left: 4px;
+    }
+    .login-bar a:hover { text-decoration: underline; }
 
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: var(--cinza-texto);
-      min-height: 100vh;
+    /* ── Banner de conta já existente ── */
+    .ja-tem-conta-banner {
+      background: #FAECE7;
+      border: 1.5px solid rgba(216,90,48,0.25);
+      border-radius: 12px;
+      padding: 1rem 1.5rem;
+      margin: 1.5rem auto;
+      max-width: 900px;
       display: flex;
       align-items: center;
-      justify-content: center;
-      padding: 2rem;
-      position: relative;
-      overflow: hidden;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
     }
-    body::before {
-      content: '';
-      position: fixed; top: -200px; right: -200px;
-      width: 500px; height: 500px; border-radius: 50%;
-      background: radial-gradient(circle, rgba(59,109,17,0.12) 0%, transparent 70%);
-      pointer-events: none;
+    .ja-tem-conta-banner p {
+      font-size: 14px;
+      color: #444441;
+      margin: 0;
     }
-
-    .card {
-      background: var(--branco);
-      border-radius: 20px;
-      width: 100%; max-width: 420px;
-      overflow: hidden;
-      box-shadow: 0 24px 80px rgba(0,0,0,0.3);
-      animation: fadeUp 0.5s ease both;
-    }
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(24px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    /* TOPO VERDE */
-    .card-top {
-      background: linear-gradient(135deg, var(--verde) 0%, #4E8A16 100%);
-      padding: 2rem 2rem 1.8rem;
+    .ja-tem-conta-banner p strong { color: #D85A30; }
+    .btn-ir-login {
+      background: #D85A30;
       color: white;
-      position: relative;
-      overflow: hidden;
-    }
-    .card-top::after {
-      content: '👤';
-      position: absolute;
-      right: 1.5rem; top: 1.2rem;
-      font-size: 3rem; opacity: 0.15;
-    }
-    .back-link {
-      display: inline-flex; align-items: center; gap: 6px;
-      font-size: 12px; color: rgba(255,255,255,0.65);
-      text-decoration: none; margin-bottom: 1rem;
-      transition: color 0.15s;
-    }
-    .back-link:hover { color: white; }
-    .card-top h1 {
+      border: none;
+      padding: 9px 22px;
+      border-radius: 8px;
       font-family: 'Syne', sans-serif;
-      font-size: 1.5rem; font-weight: 800;
-      margin-bottom: 0.3rem;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: background 0.15s;
     }
-    .card-top p { font-size: 13px; opacity: 0.75; }
+    .btn-ir-login:hover { background: #993C1D; }
 
-    /* FORMULÁRIO */
-    .card-body { padding: 2rem; }
-
-    .form-group { margin-bottom: 1.2rem; }
-    label {
-      display: block; font-size: 13px; font-weight: 600;
-      color: var(--cinza-texto); margin-bottom: 6px;
-    }
-    label .req { color: var(--laranja); }
-
-    input {
-      width: 100%; padding: 12px 14px;
-      border: 1.5px solid var(--cinza-suave);
-      border-radius: 9px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 14px; color: var(--cinza-texto);
-      background: #FAFAF7; outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-    input:focus {
-      border-color: var(--verde);
-      box-shadow: 0 0 0 3px rgba(59,109,17,0.1);
-      background: white;
-    }
-
-    /* Senha com toggle */
-    .input-wrap { position: relative; }
-    .input-wrap input { padding-right: 44px; }
-    .toggle-senha {
-      position: absolute; right: 13px; top: 50%;
-      transform: translateY(-50%);
-      background: none; border: none;
-      cursor: pointer; font-size: 1rem;
-      color: #aaa; padding: 0;
-      transition: color 0.15s;
-    }
-    .toggle-senha:hover { color: var(--verde); }
-
-    /* Barra de força da senha */
-    .forca-wrap { margin-top: 6px; display: flex; gap: 4px; }
-    .forca-barra {
-      flex: 1; height: 3px; border-radius: 3px;
-      background: var(--cinza-suave);
-      transition: background 0.3s;
-    }
-    .forca-barra.ativa.fraca  { background: #EF4444; }
-    .forca-barra.ativa.media  { background: #F59E0B; }
-    .forca-barra.ativa.forte  { background: var(--verde); }
-    .forca-label { font-size: 11px; color: #aaa; margin-top: 3px; }
-
-    /* Mensagem de erro */
-    .msg-erro {
-      background: #FEF2F2; border: 1px solid #FECACA;
-      color: #DC2626; border-radius: 8px;
-      padding: 10px 13px; font-size: 13px;
-      margin-bottom: 1rem; display: none;
-    }
-    .msg-erro.visivel { display: block; }
-
-    /* Botão */
-    .btn-cadastrar {
-      width: 100%; padding: 13px;
-      background: var(--verde); color: white;
-      border: none; border-radius: 9px;
-      font-family: 'Syne', sans-serif;
-      font-size: 15px; font-weight: 700;
-      cursor: pointer; margin-top: 0.5rem;
-      transition: background 0.2s, transform 0.1s;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-    }
-    .btn-cadastrar:hover { background: #2E5A0D; transform: translateY(-1px); }
-    .btn-cadastrar:disabled { background: #aaa; transform: none; cursor: not-allowed; }
-
-    /* Footer do card */
-    .card-footer {
-      padding: 1.2rem 2rem;
-      border-top: 1px solid var(--cinza-claro);
+    /* ── Nota no rodapé dos modais ── */
+    .modal-login-note {
       text-align: center;
-      font-size: 13px; color: #999;
+      margin-top: 1.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid #F1EFE8;
+      font-size: 13px;
+      color: #999;
     }
-    .card-footer a {
-      color: var(--verde); font-weight: 600;
+    .modal-login-note a {
+      color: #D85A30;
+      font-weight: 600;
       text-decoration: none;
     }
-    .card-footer a:hover { text-decoration: underline; }
+    .modal-login-note a:hover { text-decoration: underline; }
 
-    /* Termos */
-    .termos {
-      font-size: 11px; color: #bbb;
-      text-align: center; margin-top: 0.8rem;
+    /* ── Nota de aprovação ── */
+    .aprovacao-note {
+      background: #EAF3DE;
+      border: 1px solid rgba(59,109,17,0.25);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: #3B6D11;
+      margin-top: 1rem;
       line-height: 1.5;
     }
   </style>
 </head>
 <body>
 
-  <div class="card">
-    <!-- TOPO -->
-    <div class="card-top">
-      <a class="back-link" href="welcome.html">← Voltar</a>
-      <h1>Criar conta de Cliente</h1>
-      <p>Junte-se à OBRAVIA e encontre engenheiros verificados</p>
+<!-- BARRA DE LOGIN NO TOPO -->
+<div class="login-bar">
+  Já tem conta de engenheiro?
+  <a href="login.html">Entrar agora →</a>
+</div>
+
+<header class="header">
+  <div class="header-inner">
+    <div class="logo">
+      <h1>OBRAVIA<span> Verificação</span></h1>
+    </div>
+    <div class="back-link">
+      <a href="welcome.html">← Voltar</a>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- BANNER "JÁ TEM CONTA" -->
+  <div class="ja-tem-conta-banner">
+    <p>🔑 <strong>Já se registou anteriormente?</strong> Não precisa de criar nova conta — entre directamente com o seu email e senha.</p>
+    <a href="login.html" class="btn-ir-login">Entrar na minha conta</a>
+  </div>
+
+  <div class="page-hero">
+    <h1>Verificação em 3 Níveis</h1>
+    <p>Sistema de credenciamento para garantir qualidade e confiança em cada projeto</p>
+  </div>
+
+  <div class="niveis-grid">
+    <!-- NÍVEL 1: EMPRESAS -->
+    <div class="nivel-card nivel-empresa">
+      <div class="nivel-header">
+        <div class="nivel-numero">NÍVEL 1</div>
+        <h2>Empresa / Construtora</h2>
+        <p>Para empresas que desejam publicar projetos e receber orçamentos</p>
+      </div>
+      <div class="nivel-body">
+        <ul class="documentos-lista">
+          <li>Alvará de construção válido (emitido pelo Estado)</li>
+          <li>NUIT da empresa</li>
+          <li>Bilhete de identidade do responsável legal</li>
+        </ul>
+        <div class="badge-status badge-verificacao">✓ Verificação documental obrigatória</div>
+        <button class="btn-cadastrar btn-empresa" onclick="abrirModal('empresa')">Cadastrar como Empresa</button>
+        <p style="font-size: 0.7rem; margin-top: 0.8rem; color: #888;">*Sem documentos verificados, o perfil não fica visível ao público</p>
+      </div>
     </div>
 
-    <!-- BODY -->
-    <div class="card-body">
-      <div class="msg-erro" id="msgErro"></div>
-
-      <div class="form-group">
-        <label>Nome completo <span class="req">*</span></label>
-        <input type="text" id="nome" placeholder="O seu nome completo" autocomplete="name">
+    <!-- NÍVEL 2: ENGENHEIRO SÊNIOR -->
+    <div class="nivel-card nivel-senior">
+      <div class="nivel-header">
+        <div class="nivel-numero">NÍVEL 2</div>
+        <h2>Engenheiro Sénior</h2>
+        <p>Profissional verificado pela Ordem dos Engenheiros de Moçambique</p>
       </div>
-
-      <div class="form-group">
-        <label>Email <span class="req">*</span></label>
-        <input type="email" id="email" placeholder="email@exemplo.com" autocomplete="email">
+      <div class="nivel-body">
+        <ul class="documentos-lista">
+          <li>Diploma de Engenharia (reconhecido pelo INNOQ)</li>
+          <li>Portfólio de projetos realizados</li>
+        </ul>
+        <div class="badge-status badge-verificacao">✓ Verificação documental</div>
+        <button class="btn-cadastrar btn-senior" onclick="abrirModal('senior')">Cadastrar como Eng. Sénior</button>
+        <p style="font-size: 0.7rem; margin-top: 0.8rem; color: #888;">*Documentos verificados pelo administrador OBRAVIA</p>
       </div>
-
-      <div class="form-group">
-        <label>Senha <span class="req">*</span></label>
-        <div class="input-wrap">
-          <input type="password" id="senha" placeholder="Mínimo 6 caracteres" autocomplete="new-password" oninput="verificarForca(this.value)">
-          <button class="toggle-senha" type="button" onclick="toggleSenha()" id="toggleBtn">👁</button>
-        </div>
-        <div class="forca-wrap">
-          <div class="forca-barra" id="b1"></div>
-          <div class="forca-barra" id="b2"></div>
-          <div class="forca-barra" id="b3"></div>
-        </div>
-        <div class="forca-label" id="forcaLabel"></div>
-      </div>
-
-      <button class="btn-cadastrar" id="btnCadastrar" onclick="cadastrar()">
-        Criar conta →
-      </button>
-
-      <p class="termos">Ao criar conta, aceita os Termos de Uso da OBRAVIA.</p>
     </div>
 
-    <!-- FOOTER -->
-    <div class="card-footer">
-      Já tem conta? <a href="login.html">Entrar agora</a>
+    <!-- NÍVEL 3: ENGENHEIRO JÚNIOR / TALENTO -->
+    <div class="nivel-card nivel-junior">
+      <div class="nivel-header">
+        <div class="nivel-numero">NÍVEL 3</div>
+        <h2>Eng. Junior</h2>
+        <p>Engenheiro Júnior com potencial e formação verificada</p>
+      </div>
+      <div class="nivel-body">
+        <ul class="documentos-lista">
+          <li>Diploma verificado</li>
+          <li>Perfil identificado como "Engenheiro Júnior"</li>
+          <li>Até 3 anos de experiência</li>
+        </ul>
+        <div class="badge-status badge-junior">🌟 Secção "Talentos em Crescimento"</div>
+        <button class="btn-cadastrar btn-junior" onclick="abrirModal('junior')">Cadastrar como Júnior</button>
+        <p style="font-size: 0.7rem; margin-top: 0.8rem; color: #888;">*Perfil público separado com regras próprias</p>
+      </div>
     </div>
   </div>
 
-  <script src="js/config.js"></script>
-  <script>
-    function toggleSenha() {
-      const input = document.getElementById('senha');
-      const btn   = document.getElementById('toggleBtn');
-      if (input.type === 'password') { input.type = 'text';     btn.textContent = '🙈'; }
-      else                           { input.type = 'password'; btn.textContent = '👁'; }
-    }
+  <!-- SECÇÃO TALENTOS EM CRESCIMENTO -->
+  <div class="talentos-section">
+    <div class="talentos-header">
+      <h2>🌟 Talentos em Crescimento</h2>
+      <p>Secção especial para engenheiros juniores com regras próprias e transparência total</p>
+    </div>
+    <div class="regras-grid">
+      <div class="regra-card">
+        <div class="regra-icon">📜</div>
+        <h4>Entrada Verificada</h4>
+        <p>Cédula da Ordem válida + Diploma reconhecido</p>
+      </div>
+      <div class="regra-card">
+        <div class="regra-icon">🏷️</div>
+        <h4>Identificação Clara</h4>
+        <p>Perfil marcado como "Engenheiro Júnior" para total transparência</p>
+      </div>
+      <div class="regra-card">
+        <div class="regra-icon">📊</div>
+        <h4>Acompanhamento</h4>
+        <p>Projetos com selo "Supervisionado" quando orientado por sénior</p>
+      </div>
+    </div>
+    <p style="text-align: center; font-size: 0.85rem; color: #5F5E5A; margin-top: 1rem;">
+      ⚡ Engenheiros juniores aparecem exclusivamente na secção "Talentos em Crescimento" — não misturados com os seniores, garantindo transparência para o cliente.
+    </p>
+  </div>
+</div>
 
-    function verificarForca(v) {
-      const b1 = document.getElementById('b1');
-      const b2 = document.getElementById('b2');
-      const b3 = document.getElementById('b3');
-      const lbl = document.getElementById('forcaLabel');
-      [b1,b2,b3].forEach(b => { b.className = 'forca-barra'; });
+<!-- MODAL EMPRESA -->
+<div id="modalEmpresa" class="modal-overlay">
+  <div class="modal">
+    <span class="fechar-modal" onclick="fecharModal('modalEmpresa')">&times;</span>
+    <div class="modal-header">
+      <h3>📄 Cadastro de Empresa</h3>
+      <p style="color:#666;">Preencha os dados e envie os documentos para verificação</p>
+    </div>
+    <form id="formEmpresa">
+      <div class="form-group">
+        <label>Nome da Empresa <span>*</span></label>
+        <input type="text" id="empresaNome" required>
+      </div>
+      <div class="form-group">
+        <label>E-mail <span>*</span></label>
+        <input type="email" id="empresaEmail" required placeholder="contato@empresa.com">
+      </div>
+      <div class="form-group">
+        <label>Senha <span>*</span></label>
+        <input type="password" id="empresaSenha" required placeholder="Mínimo 6 caracteres">
+      </div>
+      <div class="form-group">
+        <label>Confirmar Senha <span>*</span></label>
+        <input type="password" id="empresaConfirmarSenha" required>
+      </div>
+      <div class="form-group">
+        <label>NUIT <span>*</span></label>
+        <input type="text" id="empresaNuit" required placeholder="123456789">
+      </div>
+      <div class="form-group">
+        <label>Nome do Responsável Legal <span>*</span></label>
+        <input type="text" id="empresaResponsavel" required>
+      </div>
+      <div class="form-group">
+        <label>BI / Cartão de Identificação <span>*</span></label>
+        <input type="text" id="empresaBi" required>
+      </div>
+      <div class="form-group">
+        <label>Upload do Alvará de Construção <span>*</span></label>
+        <div class="upload-area" id="uploadAlvara" onclick="document.getElementById('alvaraInput').click()">
+          📎 Clique para anexar (PDF/Imagem)
+        </div>
+        <input type="file" id="alvaraInput" style="display: none;" accept="image/*,application/pdf">
+        <div id="alvaraNome" class="file-name"></div>
+      </div>
+      <div class="form-group">
+        <label>Upload do Comprovativo de NUIT <span>*</span></label>
+        <div class="upload-area" id="uploadNuit" onclick="document.getElementById('nuitInput').click()">
+          📎 Anexar comprovativo
+        </div>
+        <input type="file" id="nuitInput" style="display: none;" accept="image/*,application/pdf">
+        <div id="nuitNome" class="file-name"></div>
+      </div>
+      <button type="button" class="btn-submit" onclick="enviarCadastro('empresa')">Enviar para Verificação</button>
+      <div class="aprovacao-note">
+        ⏳ Após o envio, a OBRAVIA irá verificar os documentos. Receberá acesso à plataforma assim que a aprovação for concluída.
+      </div>
+    </form>
+    <div class="modal-login-note">
+      Já tem conta? <a href="login.html">Entrar agora →</a>
+    </div>
+  </div>
+</div>
 
-      if (!v) { lbl.textContent = ''; return; }
-      const forte = v.length >= 8 && /[A-Z]/.test(v) && /[0-9]/.test(v);
-      const media = v.length >= 6;
+<!-- MODAL ENGENHEIRO SÊNIOR -->
+<div id="modalSenior" class="modal-overlay">
+  <div class="modal">
+    <span class="fechar-modal" onclick="fecharModal('modalSenior')">&times;</span>
+    <div class="modal-header">
+      <h3>🎓 Cadastro de Engenheiro Sénior</h3>
+      <p style="color:#666;">Verificação pela Ordem dos Engenheiros de Moçambique</p>
+    </div>
+    <form id="formSenior">
+      <div class="form-group">
+        <label>Nome Completo <span>*</span></label>
+        <input type="text" id="seniorNome" required>
+      </div>
+      <div class="form-group">
+        <label>E-mail <span>*</span></label>
+        <input type="email" id="seniorEmail" required placeholder="seuemail@exemplo.com">
+      </div>
+      <div class="form-group">
+        <label>Senha <span>*</span></label>
+        <input type="password" id="seniorSenha" required placeholder="Mínimo 6 caracteres">
+      </div>
+      <div class="form-group">
+        <label>Confirmar Senha <span>*</span></label>
+        <input type="password" id="seniorConfirmarSenha" required>
+      </div>
 
-      if (forte) {
-        [b1,b2,b3].forEach(b => b.classList.add('ativa','forte'));
-        lbl.textContent = '✅ Senha forte'; lbl.style.color = '#3B6D11';
-      } else if (media) {
-        b1.classList.add('ativa','media'); b2.classList.add('ativa','media');
-        lbl.textContent = '⚠️ Senha média'; lbl.style.color = '#B45309';
-      } else {
-        b1.classList.add('ativa','fraca');
-        lbl.textContent = '❌ Senha fraca'; lbl.style.color = '#DC2626';
-      }
-    }
 
-    function mostrarErro(msg) {
-      const el = document.getElementById('msgErro');
-      el.textContent = msg;
-      el.classList.add('visivel');
-    }
-    function esconderErro() {
-      document.getElementById('msgErro').classList.remove('visivel');
-    }
 
-    async function cadastrar() {
-      esconderErro();
-      const nome  = document.getElementById('nome').value.trim();
-      const email = document.getElementById('email').value.trim();
-      const senha = document.getElementById('senha').value;
+      <div class="form-group">
+        <label>Upload do Diploma <span>*</span></label>
+        <div class="upload-area" id="uploadDiploma" onclick="document.getElementById('diplomaInput').click()">
+          📎 Anexar diploma reconhecido
+        </div>
+        <input type="file" id="diplomaInput" style="display: none;" accept="image/*,application/pdf">
+        <div id="diplomaNome" class="file-name"></div>
+      </div>
 
-      if (!nome)              return mostrarErro('Por favor insira o seu nome.');
-      if (!email)             return mostrarErro('Por favor insira o seu email.');
-      if (senha.length < 6)  return mostrarErro('A senha deve ter pelo menos 6 caracteres.');
+      <div class="form-group">
+        <label>Anos de Experiência</label>
+        <select id="seniorExperiencia">
+          <option value="3-5">3-5 anos</option>
+          <option value="5-10">5-10 anos</option>
+          <option value="10+">10+ anos</option>
+        </select>
+      </div>
+      <button type="button" class="btn-submit" onclick="enviarCadastro('senior')">Enviar para Verificação</button>
+      <div class="aprovacao-note">
+        ⏳ O seu pedido será analisado pelo administrador da OBRAVIA. Receberá acesso após aprovação.
+      </div>
+    </form>
+    <div class="modal-login-note">
+      Já tem conta? <a href="login.html">Entrar agora →</a>
+    </div>
+  </div>
+</div>
 
-      const btn = document.getElementById('btnCadastrar');
-      btn.textContent = 'A criar conta...';
-      btn.disabled = true;
+<!-- MODAL ENGENHEIRO JÚNIOR -->
+<div id="modalJunior" class="modal-overlay">
+  <div class="modal">
+    <span class="fechar-modal" onclick="fecharModal('modalJunior')">&times;</span>
+    <div class="modal-header">
+      <h3>🌱 Cadastro de Talento em Crescimento</h3>
+      <p style="color:#666;">Perfil identificado como Engenheiro Júnior</p>
+    </div>
+    <form id="formJunior">
+      <div class="form-group">
+        <label>Nome Completo <span>*</span></label>
+        <input type="text" id="juniorNome" required>
+      </div>
+      <div class="form-group">
+        <label>E-mail <span>*</span></label>
+        <input type="email" id="juniorEmail" required placeholder="seuemail@exemplo.com">
+      </div>
+      <div class="form-group">
+        <label>Senha <span>*</span></label>
+        <input type="password" id="juniorSenha" required placeholder="Mínimo 6 caracteres">
+      </div>
+      <div class="form-group">
+        <label>Confirmar Senha <span>*</span></label>
+        <input type="password" id="juniorConfirmarSenha" required>
+      </div>
 
-      try {
-        const BASE = (typeof API_URL !== 'undefined' ? API_URL : 'http://localhost:3000/api');
-        const res = await fetch(`${BASE}/cadastro/cliente`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ nome, email, senha })
-        });
 
-        const data = await res.json();
+      <div class="form-group">
+        <label>Upload do Diploma <span>*</span></label>
+        <div class="upload-area" id="uploadJuniorDiploma" onclick="document.getElementById('juniorDiplomaInput').click()">
+          📎 Anexar diploma
+        </div>
+        <input type="file" id="juniorDiplomaInput" style="display: none;" accept="image/*,application/pdf">
+        <div id="juniorDiplomaNome" class="file-name"></div>
+      </div>
 
-        if (!res.ok) {
-          mostrarErro(data.error || 'Erro ao criar conta. Tente novamente.');
-          btn.textContent = 'Criar conta →'; btn.disabled = false;
-          return;
-        }
+      <div class="form-group">
+        <label>Área de Especialização</label>
+        <select id="juniorEspecializacao">
+          <option value="Construção Civil">Construção Civil</option>
+          <option value="Estruturas">Estruturas</option>
+          <option value="Hidráulica">Hidráulica</option>
+          <option value="Transportes">Transportes</option>
+          <option value="Geotecnia">Geotecnia</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>LinkedIn / Portfólio (opcional)</label>
+        <input type="url" id="juniorLinkedin" placeholder="https://linkedin.com/in/seu-perfil">
+      </div>
+      <button type="button" class="btn-submit" onclick="enviarCadastro('junior')">Cadastrar como Júnior</button>
+      <div class="aprovacao-note">
+        ⏳ O seu pedido será analisado pelo administrador da OBRAVIA. Receberá acesso após aprovação.
+      </div>
+    </form>
+    <div class="modal-login-note">
+      Já tem conta? <a href="login.html">Entrar agora →</a>
+    </div>
+  </div>
+</div>
 
-        // Guardar sessão e redirecionar
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('authToken', data.token);
-        localStorage.setItem('usuarioLogado', data.user.nome);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        localStorage.setItem('role', data.user.role);
+<div id="toast" class="toast">✅ Cadastro submetido com sucesso! Aguarde verificação.</div>
 
-        window.location.href = 'index.html';
-
-      } catch (err) {
-        mostrarErro('Não foi possível ligar ao servidor. Verifique a sua ligação.');
-        btn.textContent = 'Criar conta →'; btn.disabled = false;
-      }
-    }
-
-    // Enter para submeter
-    document.addEventListener('keydown', e => { if (e.key === 'Enter') cadastrar(); });
-  </script>
+<script src="js/config.js"></script>
+<script src="js/cadastro.js"></script>
 </body>
 </html>
