@@ -8,6 +8,7 @@ const path    = require('path');
 const cors    = require('cors');
 const fs      = require('fs');
 const db      = require('./db');
+const { type } = require('os');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
