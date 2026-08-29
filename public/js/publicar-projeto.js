@@ -131,6 +131,7 @@ async function publicarProjeto(event) {
     const titulo = document.getElementById("projetoTitulo").value.trim();
     const descricao = document.getElementById("projetoDescricao").value.trim();
     const categoria = document.getElementById("projetoCategoria").value;
+    const provincia = document.getElementById("projetoProvincia") ? document.getElementById("projetoProvincia").value.trim() : '';
     const local = document.getElementById("projetoLocal").value.trim();
     const tagsRaw = document.getElementById("projetoTags").value.trim();
     
@@ -144,12 +145,14 @@ async function publicarProjeto(event) {
         return;
     }
     
+    const localFinal = provincia || local || 'Não informado';
+
     // Preparar FormData para envio
     const formData = new FormData();
     formData.append('titulo', titulo);
     formData.append('descricao', descricao);
     formData.append('categoria', categoria);
-    formData.append('local', local || 'Não informado');
+    formData.append('local', localFinal);
     formData.append('tags', tagsRaw);
     
     // Adicionar imagens
@@ -207,6 +210,13 @@ async function abrirModalEditar(id) {
     document.getElementById("editId").value = projeto.id;
     document.getElementById("editTitulo").value = projeto.titulo;
     document.getElementById("editCategoria").value = projeto.categoria;
+
+    const provSelect = document.getElementById("editProvincia");
+    if (provSelect) {
+        const valorLocal = projeto.local || '';
+        provSelect.value = [...provSelect.options].some(opt => opt.value === valorLocal) ? valorLocal : '';
+    }
+
     document.getElementById("editLocal").value = projeto.local || '';
     document.getElementById("editDescricao").value = projeto.descricao;
     
@@ -230,10 +240,12 @@ async function salvarEdicao(event) {
     event.preventDefault();
     
     const id = document.getElementById("editId").value;
+    const provinciaEdit = document.getElementById("editProvincia") ? document.getElementById("editProvincia").value : '';
+    const localEdit = document.getElementById("editLocal").value.trim();
     const dados = {
         titulo: document.getElementById("editTitulo").value,
         categoria: document.getElementById("editCategoria").value,
-        local: document.getElementById("editLocal").value,
+        local: provinciaEdit || localEdit || '',
         descricao: document.getElementById("editDescricao").value,
         tags: document.getElementById("editTags").value
     };
