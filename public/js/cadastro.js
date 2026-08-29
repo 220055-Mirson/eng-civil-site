@@ -1,186 +1,200 @@
-// ── CONFIGURAÇÃO DA API ──
-// REMOVA esta linha fixa:
-// const API_URL = 'http://localhost:3000/api';
-// Agora usa a variável global do config.js
+// ============================================================
+//  OBRAVIA — cadastro.js
+//  Gestão do formulário de cadastro de engenheiros
+// ============================================================
 
-// ── CONFIGURAR UPLOAD DE ARQUIVOS ──
-function setupFileUpload(clickId, inputId, displayId) {
-  const clickEl = document.getElementById(clickId);
-  const inputEl = document.getElementById(inputId);
-  const displayEl = document.getElementById(displayId);
-  
-  if (clickEl && inputEl && displayEl) {
-    clickEl.addEventListener('click', () => inputEl.click());
-    inputEl.addEventListener('change', (e) => {
-      if (e.target.files[0]) {
-        displayEl.textContent = `📎 ${e.target.files[0].name}`;
-      }
-    });
-  }
-}
-
-// Inicializar uploads
-setupFileUpload('uploadAlvara', 'alvaraInput', 'alvaraNome');
-setupFileUpload('uploadNuit', 'nuitInput', 'nuitNome');
-setupFileUpload('uploadDiploma', 'diplomaInput', 'diplomaNome');
-setupFileUpload('uploadCedula', 'cedulaInput', 'cedulaNome');
-setupFileUpload('uploadJuniorDiploma', 'juniorDiplomaInput', 'juniorDiplomaNome');
-setupFileUpload('uploadJuniorCedula', 'juniorCedulaInput', 'juniorCedulaNome');
-
-// ── FUNÇÕES DE MODAL ──
-function abrirModal(tipo) {
-  const modalId = tipo === 'empresa' ? 'modalEmpresa' : (tipo === 'senior' ? 'modalSenior' : 'modalJunior');
-  document.getElementById(modalId).classList.add('aberto');
-}
-
+// Fechar modal
 function fecharModal(id) {
   document.getElementById(id).classList.remove('aberto');
+  document.getElementById(id).style.display = 'none';
 }
 
-// ── FUNÇÕES DE TOAST ──
-function mostrarToast(mensagem, isError = false) {
-  const toast = document.getElementById('toast');
-  toast.textContent = mensagem;
-  toast.classList.add('visivel');
-  if (isError) toast.classList.add('error');
-  else toast.classList.remove('error');
-  
-  setTimeout(() => {
-    toast.classList.remove('visivel');
-    toast.classList.remove('error');
-  }, 4000);
-}
-
-// ── VALIDAÇÃO DE SENHAS ──
-function validarSenhas(senha, confirmar) {
-  if (senha !== confirmar) {
-    mostrarToast('❌ As senhas não coincidem!', true);
-    return false;
+// Abrir modal
+function abrirModal(tipo) {
+  const ids = { empresa: 'modalEmpresa', senior: 'modalSenior', junior: 'modalJunior' };
+  const id = ids[tipo];
+  if (!id) return;
+  const modal = document.getElementById(id);
+  if (modal) {
+    modal.style.display = 'flex';
+    modal.classList.add('aberto');
   }
-  if (senha.length < 6) {
-    mostrarToast('❌ A senha deve ter pelo menos 6 caracteres!', true);
-    return false;
-  }
-  return true;
 }
 
-// ── FUNÇÃO PARA CRIAR FORM DATA COM OS ARQUIVOS ──
-function criarFormDataEmpresa() {
-  const formData = new FormData();
-  formData.append('nome_empresa', document.getElementById('empresaNome').value);
-  formData.append('email', document.getElementById('empresaEmail').value);
-  formData.append('senha', document.getElementById('empresaSenha').value);
-  formData.append('nuit', document.getElementById('empresaNuit').value);
-  formData.append('responsavel', document.getElementById('empresaResponsavel').value);
-  formData.append('bi', document.getElementById('empresaBi').value);
-  
-  const alvara = document.getElementById('alvaraInput').files[0];
-  const nuitComprovativo = document.getElementById('nuitInput').files[0];
-  
-  if (alvara) formData.append('alvara', alvara);
-  if (nuitComprovativo) formData.append('nuit_comprovativo', nuitComprovativo);
-  
-  return formData;
-}
-
-function criarFormDataSenior() {
-  const formData = new FormData();
-  formData.append('nome', document.getElementById('seniorNome').value);
-  formData.append('email', document.getElementById('seniorEmail').value);
-  formData.append('senha', document.getElementById('seniorSenha').value);
-  formData.append('numero_ordem', document.getElementById('seniorOrdem').value);
-  formData.append('anos_experiencia', document.getElementById('seniorExperiencia').value);
-  formData.append('data_validade_ordem', document.getElementById('seniorValidade').value);
-  
-  const diploma = document.getElementById('diplomaInput').files[0];
-  if (diploma) formData.append('diploma', diploma);
-  
-  return formData;
-}
-
-function criarFormDataJunior() {
-  const formData = new FormData();
-  formData.append('nome', document.getElementById('juniorNome').value);
-  formData.append('email', document.getElementById('juniorEmail').value);
-  formData.append('senha', document.getElementById('juniorSenha').value);
-  formData.append('numero_ordem', document.getElementById('juniorOrdem').value);
-  formData.append('especializacao', document.getElementById('juniorEspecializacao').value);
-  formData.append('linkedin', document.getElementById('juniorLinkedin').value);
-  
-  const diploma = document.getElementById('juniorDiplomaInput').files[0];
-  if (diploma) formData.append('diploma', diploma);
-  
-  return formData;
-}
-
-// ── ENVIAR CADASTRO PARA O BACKEND ──
-async function enviarCadastro(tipo) {
-  let endpoint = '';
-  let formData = null;
-  let mensagem = '';
-  
-  if (tipo === 'empresa') {
-    const senha = document.getElementById('empresaSenha')?.value;
-    const confirmar = document.getElementById('empresaConfirmarSenha')?.value;
-    if (!validarSenhas(senha, confirmar)) return;
-    
-    endpoint = `${API_URL}/cadastro/empresa`;
-    formData = criarFormDataEmpresa();
-    mensagem = '📄 Empresa registada! Documentos enviados para verificação.';
-    
-  } else if (tipo === 'senior') {
-    const senha = document.getElementById('seniorSenha')?.value;
-    const confirmar = document.getElementById('seniorConfirmarSenha')?.value;
-    if (!validarSenhas(senha, confirmar)) return;
-    
-    endpoint = `${API_URL}/cadastro/senior`;
-    formData = criarFormDataSenior();
-    mensagem = '🎓 Engenheiro Sénior registado! A verificação será feita em 48h.';
-    
-  } else {
-    const senha = document.getElementById('juniorSenha')?.value;
-    const confirmar = document.getElementById('juniorConfirmarSenha')?.value;
-    if (!validarSenhas(senha, confirmar)) return;
-    
-    endpoint = `${API_URL}/cadastro/junior`;
-    formData = criarFormDataJunior();
-    mensagem = '🌱 Talento em Crescimento registado! Perfil será visível na secção especial.';
-  }
-  
-  try {
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      body: formData
-    });
-    
-    const data = await response.json();
-    
-    if (response.ok) {
-      mostrarToast(mensagem);
-      
-      // Fechar modal
-      const modais = ['modalEmpresa', 'modalSenior', 'modalJunior'];
-      modais.forEach(m => {
-        const el = document.getElementById(m);
-        if (el) el.classList.remove('aberto');
-      });
-      
-      // Redirecionar para login após 2 segundos
-      setTimeout(() => {
-        window.location.href = 'login.html';
-      }, 2000);
-    } else {
-      mostrarToast(data.error || 'Erro ao cadastrar. Tente novamente.', true);
+// Fechar ao clicar fora
+document.addEventListener('click', function(e) {
+  ['modalEmpresa', 'modalSenior', 'modalJunior'].forEach(id => {
+    const modal = document.getElementById(id);
+    if (modal && e.target === modal) {
+      modal.style.display = 'none';
+      modal.classList.remove('aberto');
     }
-  } catch (error) {
-    console.error('Erro:', error);
-    mostrarToast('Erro de conexão com o servidor. Verifique se o backend está rodando.', true);
-  }
-}
-
-// ── FECHAR MODAL AO CLICAR FORA ──
-document.querySelectorAll('.modal-overlay').forEach(overlay => {
-  overlay.addEventListener('click', function(e) {
-    if (e.target === this) this.classList.remove('aberto');
   });
 });
+
+// Upload preview
+function setupUpload(inputId, areaId, nomeId) {
+  const input = document.getElementById(inputId);
+  const nome  = document.getElementById(nomeId);
+  if (!input) return;
+  input.addEventListener('change', function() {
+    if (this.files[0]) {
+      if (nome) nome.textContent = '✅ ' + this.files[0].name;
+    }
+  });
+}
+
+setupUpload('alvaraInput',         'uploadAlvara',         'alvaraNome');
+setupUpload('nuitInput',           'uploadNuit',           'nuitNome');
+setupUpload('diplomaInput',        'uploadDiploma',        'diplomaNome');
+setupUpload('juniorDiplomaInput',  'uploadJuniorDiploma',  'juniorDiplomaNome');
+
+// Mostrar toast
+function mostrarToast(msg, erro) {
+  const toast = document.getElementById('toast');
+  if (!toast) return;
+  toast.textContent = msg;
+  toast.style.background = erro ? '#DC2626' : '#3B6D11';
+  toast.classList.add('visivel');
+  setTimeout(() => toast.classList.remove('visivel'), 4000);
+}
+
+// Enviar cadastro
+async function enviarCadastro(tipo) {
+  // Usar API_URL do config.js — com fallback robusto para produção
+  let BASE;
+  if (typeof API_URL !== 'undefined' && API_URL) {
+    BASE = API_URL;
+  } else {
+    const host = window.location.hostname;
+    BASE = (host === 'localhost' || host === '127.0.0.1')
+      ? 'http://localhost:3000/api'
+      : `${window.location.protocol}//${host}/api`;
+  }
+
+  let url, formData;
+
+  if (tipo === 'empresa') {
+    const nome     = document.getElementById('empresaNome')?.value.trim();
+    const email    = document.getElementById('empresaEmail')?.value.trim();
+    const senha    = document.getElementById('empresaSenha')?.value;
+    const confirma = document.getElementById('empresaConfirmarSenha')?.value;
+    const nuit     = document.getElementById('empresaNuit')?.value.trim();
+    const resp     = document.getElementById('empresaResponsavel')?.value.trim();
+    const bi       = document.getElementById('empresaBi')?.value.trim();
+
+    if (!nome || !email || !senha || !nuit || !resp || !bi) {
+      return mostrarToast('Por favor preencha todos os campos obrigatórios.', true);
+    }
+    if (senha !== confirma) {
+      return mostrarToast('As senhas não coincidem.', true);
+    }
+    if (senha.length < 6) {
+      return mostrarToast('A senha deve ter pelo menos 6 caracteres.', true);
+    }
+
+    url = `${BASE}/cadastro/empresa`;
+    formData = new FormData();
+    formData.append('nome_empresa', nome);
+    formData.append('email', email);
+    formData.append('senha', senha);
+    formData.append('nuit', nuit);
+    formData.append('responsavel', resp);
+    formData.append('bi', bi);
+    const alvara = document.getElementById('alvaraInput')?.files[0];
+    const nuitDoc = document.getElementById('nuitInput')?.files[0];
+    if (alvara)   formData.append('alvara', alvara);
+    if (nuitDoc)  formData.append('nuit_comprovativo', nuitDoc);
+
+  } else if (tipo === 'senior') {
+    const nome     = document.getElementById('seniorNome')?.value.trim();
+    const email    = document.getElementById('seniorEmail')?.value.trim();
+    const senha    = document.getElementById('seniorSenha')?.value;
+    const confirma = document.getElementById('seniorConfirmarSenha')?.value;
+    const anos     = document.getElementById('seniorExperiencia')?.value;
+
+    if (!nome || !email || !senha) {
+      return mostrarToast('Por favor preencha todos os campos obrigatórios.', true);
+    }
+    if (senha !== confirma) {
+      return mostrarToast('As senhas não coincidem.', true);
+    }
+    if (senha.length < 6) {
+      return mostrarToast('A senha deve ter pelo menos 6 caracteres.', true);
+    }
+
+    url = `${BASE}/cadastro/senior`;
+    formData = new FormData();
+    formData.append('nome', nome);
+    formData.append('email', email);
+    formData.append('senha', senha);
+    formData.append('anos_experiencia', anos || '');
+    const diploma = document.getElementById('diplomaInput')?.files[0];
+    if (diploma) formData.append('diploma', diploma);
+
+  } else if (tipo === 'junior') {
+    const nome     = document.getElementById('juniorNome')?.value.trim();
+    const email    = document.getElementById('juniorEmail')?.value.trim();
+    const senha    = document.getElementById('juniorSenha')?.value;
+    const confirma = document.getElementById('juniorConfirmarSenha')?.value;
+    const espec    = document.getElementById('juniorEspecializacao')?.value;
+    const linkedin = document.getElementById('juniorLinkedin')?.value.trim();
+
+    if (!nome || !email || !senha) {
+      return mostrarToast('Por favor preencha todos os campos obrigatórios.', true);
+    }
+    if (senha !== confirma) {
+      return mostrarToast('As senhas não coincidem.', true);
+    }
+    if (senha.length < 6) {
+      return mostrarToast('A senha deve ter pelo menos 6 caracteres.', true);
+    }
+
+    url = `${BASE}/cadastro/junior`;
+    formData = new FormData();
+    formData.append('nome', nome);
+    formData.append('email', email);
+    formData.append('senha', senha);
+    formData.append('especializacao', espec || '');
+    formData.append('linkedin', linkedin || '');
+    const diploma = document.getElementById('juniorDiplomaInput')?.files[0];
+    if (diploma) formData.append('diploma', diploma);
+
+  } else {
+    return;
+  }
+
+  // Desabilitar botão
+  const btn = document.querySelector(`#modal${tipo.charAt(0).toUpperCase() + tipo.slice(1)} .btn-submit`);
+  if (btn) { btn.disabled = true; btn.textContent = 'A enviar...'; }
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      body: formData
+      // Não definir Content-Type — o browser define automaticamente com boundary para FormData
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      // Fechar modal
+      const modalId = { empresa: 'modalEmpresa', senior: 'modalSenior', junior: 'modalJunior' }[tipo];
+      if (modalId) {
+        document.getElementById(modalId).style.display = 'none';
+        document.getElementById(modalId).classList.remove('aberto');
+      }
+      mostrarToast('✅ Cadastro enviado! Aguarde a aprovação do administrador OBRAVIA.');
+    } else {
+      mostrarToast(data.error || 'Erro ao enviar cadastro. Tente novamente.', true);
+    }
+  } catch (err) {
+    console.error('Erro no cadastro:', err);
+    mostrarToast('Não foi possível ligar ao servidor. Verifique a sua ligação.', true);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Enviar para Verificação';
+    }
+  }
+}

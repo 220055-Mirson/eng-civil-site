@@ -9,6 +9,99 @@ let projetosFiltrados = [];
 let categoriaAtual = 'todos';
 
 // ── CARREGAR PROJETOS DO BACKEND ──
+// ── FILTROS DE PROVÍNCIA ──
+let _todosProjectos = [];
+let _todosPedidos   = [];
+let _categoriaActiva = 'todos';
+let _provinciaProjectos = 'todos';
+let _provinciaPedidos   = 'todos';
+
+function filtrarProvinciaProjetos(provincia) {
+  _provinciaProjectos = provincia;
+  aplicarFiltro();
+}
+
+function filtrarProvinciaPedidos(provincia) {
+  _provinciaPedidos = provincia;
+  renderPedidosFiltrados();
+}
+
+function renderProjectosFiltrados() {
+  const grid = document.getElementById('projetosGrid');
+  if (!grid) return;
+
+  let dados = _todosProjectos;
+
+  if (_categoriaActiva !== 'todos') {
+    dados = dados.filter(p => p.categoria === _categoriaActiva);
+  }
+  if (_provinciaProjectos !== 'todos') {
+    dados = dados.filter(p => p.local && p.local.includes(_provinciaProjectos));
+  }
+
+  if (!dados.length) {
+    grid.innerHTML = '<p style="color:#aaa;font-size:13px;padding:1rem">Nenhum projecto encontrado para este filtro.</p>';
+    return;
+  }
+
+  // Re-render using existing card logic
+  grid.innerHTML = dados.map(projeto => {
+    const engNome = projeto.engenheiro_nome || projeto.engenheiro || 'Engenheiro';
+    const fotos   = Array.isArray(projeto.fotos) ? projeto.fotos : (typeof projeto.fotos === 'string' ? JSON.parse(projeto.fotos || '[]') : []);
+    const fotoCapa = projeto.foto_capa || fotos[0] || '';
+    const uploadsUrl = typeof UPLOADS_URL !== 'undefined' ? UPLOADS_URL : '';
+    const imgSrc = fotoCapa ? (fotoCapa.startsWith('http') ? fotoCapa : `${uploadsUrl}/${fotoCapa.replace(/^\//, '')}`) : '';
+    return `<div class="card" onclick="window.location.href='detalhes.html?id=${projeto.id}'">
+      <div class="card-img" style="background:#F1EFE8;min-height:160px;display:flex;align-items:center;justify-content:center;overflow:hidden">
+        ${imgSrc ? `<img src="${imgSrc}" alt="${escapeHtml(projeto.titulo)}" style="width:100%;height:160px;object-fit:cover" onerror="this.style.display='none'">` : '<span style="font-size:2rem">🏗️</span>'}
+      </div>
+      <div class="card-content">
+        <span class="tag">${escapeHtml(projeto.categoria || 'Geral')}</span>
+        <h3>${escapeHtml(projeto.titulo)}</h3>
+        <p class="card-eng">👷 ${escapeHtml(engNome)}</p>
+        <p class="card-local">📍 ${escapeHtml(projeto.local || '')}</p>
+        <button class="btn-contacto" onclick="event.stopPropagation(); abrirModalContacto('${escapeHtml(engNome)}', ${projeto.usuario_id || 0}, ${projeto.id})">Pedir contacto</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderPedidosFiltrados() {
+  const grid = document.getElementById('pedidosGrid');
+  if (!grid) return;
+
+  let dados = _todosPedidos;
+  if (_provinciaPedidos !== 'todos') {
+    dados = dados.filter(p => p.local && p.local.includes(_provinciaPedidos));
+  }
+
+  if (!dados.length) {
+    const msg = _provinciaPedidos !== 'todos'
+      ? 'Nenhum pedido publicado nesta província.'
+      : 'Ainda não há pedidos publicados.';
+    grid.innerHTML = `<p style="color:#aaa;font-size:13px;padding:1rem">${msg}</p>`;
+    return;
+  }
+
+  grid.innerHTML = dados.map(p => {
+    const data = tempoRelativo(p.criado_em);
+    const descCurta = p.descricao.length > 140 ? p.descricao.substring(0, 140) + '...' : p.descricao;
+    const orc = p.orcamento_min || p.orcamento_max
+      ? `Orçamento: ${p.orcamento_min ? Number(p.orcamento_min).toLocaleString('pt-MZ') + ' MZN' : '?'} – ${p.orcamento_max ? Number(p.orcamento_max).toLocaleString('pt-MZ') + ' MZN' : 'Sem limite'}`
+      : '';
+    return `
+      <div class="pedido-card">
+        <span class="pedido-tipo">${p.tipo}</span>
+        <h4>${p.tipo} · ${p.local}</h4>
+        <p class="pedido-meta">Cliente: ${p.nome_cliente} · Publicado ${data}</p>
+        <p style="font-size:13px; color:#5F5E5A;">${descCurta}</p>
+        <div class="pedido-sugestao">
+          <strong>Urgência:</strong> ${p.urgencia || 'Não definida'}${orc ? ' &nbsp;·&nbsp; ' + orc : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
 async function carregarProjetos() {
   const grid = document.getElementById('projetosGrid');
   
@@ -36,7 +129,9 @@ async function carregarProjetos() {
 }
 
 // ── APLICAR FILTRO ──
-function filtrarProjetos(categoria) {
+function filtrarProjetos(categoria, provincia) {
+  if (categoria !== null && categoria !== undefined) _categoriaActiva = categoria;
+  if (provincia  !== null && provincia  !== undefined) _provinciaProjectos = provincia;
   categoriaAtual = categoria;
   
   // Atualizar botões ativos
@@ -56,7 +151,10 @@ function aplicarFiltro() {
   } else {
     projetosFiltrados = todosProjetos.filter(p => p.categoria === categoriaAtual);
   }
-  
+  // Filtro de província
+  if (_provinciaProjectos !== 'todos') {
+    projetosFiltrados = projetosFiltrados.filter(p => p.local && p.local.includes(_provinciaProjectos));
+  }
   exibirProjetos();
 }
 
@@ -134,11 +232,11 @@ async function carregarPedidos() {
     if (!res.ok) throw new Error('Erro na API');
     const pedidos = await res.json();
 
-    if (!pedidos.length) {
-      pedidosGrid.innerHTML = '<p style="color:#aaa;font-size:13px;padding:1rem">Ainda não há pedidos publicados.</p>';
-      return;
-    }
+    _todosPedidos = pedidos;
+    renderPedidosFiltrados();
+    return;
 
+    // render legacy (nunca executado — mantido para referência)
     pedidosGrid.innerHTML = pedidos.map(p => {
       const data = tempoRelativo(p.criado_em);
       const descCurta = p.descricao.length > 140 ? p.descricao.substring(0, 140) + '...' : p.descricao;
@@ -654,22 +752,18 @@ function mostrarToast(msg) {
   setTimeout(() => toast.classList.remove("visivel"), 4000);
 }
 
-// ── NOVO MODAL PARA ADICIONAR PROJETOS (LOGIN ENGENHEIRO) ──
+// ── ADICIONAR PROJECTO ──
 function abrirModalLoginProjetos() {
-  console.log("Abrindo modal de login...");
-  const modal = document.getElementById('modalLoginProjetos');
-  if (modal) {
-    modal.classList.add('aberto');
-    // Limpar campos
-    const emailInput = document.getElementById('loginEmail');
-    const senhaInput = document.getElementById('loginSenha');
-    const errorDiv = document.getElementById('loginError');
-    if (emailInput) emailInput.value = '';
-    if (senhaInput) senhaInput.value = '';
-    if (errorDiv) errorDiv.style.display = 'none';
+  const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+  const user  = JSON.parse(localStorage.getItem('user') || '{}');
+  const tiposEng = ['senior', 'junior', 'empresa'];
+
+  if (token && tiposEng.includes(user.tipo)) {
+    // Logado como engenheiro → vai directo
+    window.location.href = 'publicar-projeto.html';
   } else {
-    console.error("Modal 'modalLoginProjetos' não encontrado!");
-    mostrarToast("Erro: Modal de login não encontrado!", true);
+    // Não logado → vai para login
+    window.location.href = 'login.html';
   }
 }
 
