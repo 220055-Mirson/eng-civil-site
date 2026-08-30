@@ -36,7 +36,7 @@ function renderProjectosFiltrados() {
     dados = dados.filter(p => p.categoria === _categoriaActiva);
   }
   if (_provinciaProjectos !== 'todos') {
-    dados = dados.filter(p => p.local && p.local.includes(_provinciaProjectos));
+    dados = dados.filter(p => p.local && p.local.trim() === _provinciaProjectos.trim());
   }
 
   if (!dados.length) {
@@ -72,7 +72,7 @@ function renderPedidosFiltrados() {
 
   let dados = _todosPedidos;
   if (_provinciaPedidos !== 'todos') {
-    dados = dados.filter(p => p.local && p.local.includes(_provinciaPedidos));
+    dados = dados.filter(p => p.local && p.local.trim() === _provinciaPedidos.trim());
   }
 
   if (!dados.length) {

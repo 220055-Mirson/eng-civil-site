@@ -37,6 +37,52 @@
       to   { opacity:1; transform:translateY(0); }
     }
 
+    /* ── FILTRO PROVÍNCIA ── */
+    .filtros-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+    }
+    .filtros-categorias {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .filtro-provincia {
+      padding: 8px 14px;
+      border: 1.5px solid #D3D1C7;
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: #444441;
+      background: white;
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.2s;
+      min-width: 180px;
+    }
+    .filtro-provincia:focus,
+    .filtro-provincia:hover {
+      border-color: #D85A30;
+    }
+    .fase2-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .fase2-header .filtro-provincia {
+      margin-left: auto;
+    }
+    @media (max-width: 600px) {
+      .filtros-row { flex-direction: column; align-items: flex-start; }
+      .filtro-provincia { width: 100%; }
+      .fase2-header .filtro-provincia { margin-left: 0; width: 100%; }
+    }
+
     /* ── HERO COM IMAGEM DE FUNDO ── */
     #heroSection {
       position: relative;
@@ -183,12 +229,30 @@
   <!-- FILTROS -->
   <div class="filtros-bar">
     <h2>Projetos recentes</h2>
-    <button class="filtro-btn ativo" data-categoria="todos" onclick="filtrarProjetos('todos')">Todos</button>
-    <button class="filtro-btn" data-categoria="Residencial" onclick="filtrarProjetos('Residencial')">Residencial</button>
-    <button class="filtro-btn" data-categoria="Comercial" onclick="filtrarProjetos('Comercial')">Comercial</button>
-    <button class="filtro-btn" data-categoria="Infra-estrutura" onclick="filtrarProjetos('Infra-estrutura')">Infra-estrutura</button>
-    <button class="filtro-btn" data-categoria="Industrial" onclick="filtrarProjetos('Industrial')">Industrial</button>
-    <button class="filtro-btn" data-categoria="Educação" onclick="filtrarProjetos('Educação')">Educação</button>
+    <div class="filtros-row">
+      <div class="filtros-categorias">
+        <button class="filtro-btn ativo" data-categoria="todos" onclick="filtrarProjetos('todos')">Todos</button>
+        <button class="filtro-btn" data-categoria="Residencial" onclick="filtrarProjetos('Residencial')">Residencial</button>
+        <button class="filtro-btn" data-categoria="Comercial" onclick="filtrarProjetos('Comercial')">Comercial</button>
+        <button class="filtro-btn" data-categoria="Infra-estrutura" onclick="filtrarProjetos('Infra-estrutura')">Infra-estrutura</button>
+        <button class="filtro-btn" data-categoria="Industrial" onclick="filtrarProjetos('Industrial')">Industrial</button>
+        <button class="filtro-btn" data-categoria="Educação" onclick="filtrarProjetos('Educação')">Educação</button>
+      </div>
+      <select class="filtro-provincia" id="provinciaProjectos" onchange="filtrarProvinciaProjetos(this.value)">
+        <option value="todos">📍 Todas as províncias</option>
+          <option value="Maputo">Maputo</option>
+          <option value="Matola">Matola</option>
+          <option value="Gaza">Gaza</option>
+          <option value="Inhambane">Inhambane</option>
+          <option value="Sofala">Sofala</option>
+          <option value="Manica">Manica</option>
+          <option value="Tete">Tete</option>
+          <option value="Zambezia">Zambezia</option>
+          <option value="Nampula">Nampula</option>
+          <option value="Cabo Delgado">Cabo Delgado</option>
+          <option value="Niassa">Niassa</option>
+      </select>
+    </div>
   </div>
 
   <!-- GRID DE CARDS (dinâmica) -->
@@ -206,6 +270,20 @@
     <div class="fase2-header">
       <h2>Pedidos de clientes</h2>
       <span class="badge-fase badge-fase2">Intermediação</span>
+      <select class="filtro-provincia" id="provinciaPedidos" onchange="filtrarProvinciaPedidos(this.value)">
+        <option value="todos">📍 Todas as províncias</option>
+          <option value="Maputo">Maputo</option>
+          <option value="Matola">Matola</option>
+          <option value="Gaza">Gaza</option>
+          <option value="Inhambane">Inhambane</option>
+          <option value="Sofala">Sofala</option>
+          <option value="Manica">Manica</option>
+          <option value="Tete">Tete</option>
+          <option value="Zambezia">Zambezia</option>
+          <option value="Nampula">Nampula</option>
+          <option value="Cabo Delgado">Cabo Delgado</option>
+          <option value="Niassa">Niassa</option>
+      </select>
     </div>
     <div class="pedidos-grid" id="pedidosGrid">
       <!-- Pedidos carregados via JavaScript -->
@@ -233,9 +311,9 @@
           <img src="img/whatsapp.png" alt="Whatsapp">
         </a>
       </div>
-      <p>Mais info: 873032005 / 858164250</p>
+      <p>Mais info: 873032005 / 848164250</p>
       <p>© 2026 OBRAVIA — Todos os direitos reservados</p>
-      <p>Eng. Maluve</p>
+      <p>DevForge</p>
     </div>
   </footer>
 

@@ -1,8 +1,1 @@
-# Melhorar e aprimorar a plataforma
-
-## Funcao de filtro por localizacao(Provincias)
-
-**No index.html, colocar um filtro pra selecionar a provincia e ver apenas as publicacoes da provincia selecionada, colocar todas as provincias de Mocambique**
-
-
-**Tendo em conta que no frontend do publicar projeto tem uma lista na label localizacao que tem os nomes e valores das provincias de mocambique (Maputo; Matola; Gaza; Inhambane; Sofala; Manica; Tete; Zambezia; Nampula; Cabo Delgado; Niassa)**
+Ja implementei a label de localizacao no adicionar adicionaer projetos, agora quero que tu emplementes um filtro no index, para que o usuario consiga selecionar qual projeto quer ver com base nas provincias inseridas em cada projeto postado pelos eng's... Gere todos os arquivos necessarios pra que isso seja possivel agora.
