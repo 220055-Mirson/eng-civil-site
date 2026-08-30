@@ -78,9 +78,11 @@
       margin-left: auto;
     }
     @media (max-width: 600px) {
-      .filtros-row { flex-direction: column; align-items: flex-start; }
-      .filtro-provincia { width: 100%; }
-      .fase2-header .filtro-provincia { margin-left: 0; width: 100%; }
+      .filtros-row { flex-direction: row; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+      .filtros-categorias { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+      .filtros-categorias::-webkit-scrollbar { display: none; }
+      .filtro-provincia { width: auto; min-width: 140px; }
+      .fase2-header .filtro-provincia { margin-left: 0; width: auto; }
     }
 
     /* ── HERO COM IMAGEM DE FUNDO ── */
