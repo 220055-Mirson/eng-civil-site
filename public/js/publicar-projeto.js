@@ -197,8 +197,8 @@ async function publicarProjeto(event) {
         console.error('Erro:', error);
         mostrarToast("Erro de conexão com o servidor", true);
     } finally {
-        btn.innerText = originalText;
-        btn.disabled = false;
+        if (btn) { btn.innerText = originalText; btn.disabled = false; }
+        // btn already handled above
     }
 }
 
