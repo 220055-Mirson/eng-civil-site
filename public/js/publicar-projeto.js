@@ -128,12 +128,12 @@ async function publicarProjeto(event) {
         return;
     }
     
-    const titulo = document.getElementById("projetoTitulo").value.trim();
-    const descricao = document.getElementById("projetoDescricao").value.trim();
-    const categoria = document.getElementById("projetoCategoria").value;
-    const provincia = document.getElementById("projetoProvincia") ? document.getElementById("projetoProvincia").value.trim() : '';
-    const local = document.getElementById("projetoLocal").value.trim();
-    const tagsRaw = document.getElementById("projetoTags").value.trim();
+    const titulo    = document.getElementById("projetoTitulo")?.value.trim() || '';
+    const descricao = document.getElementById("projetoDescricao")?.value.trim() || '';
+    const categoria = document.getElementById("projetoCategoria")?.value || 'Outros';
+    const provincia = document.getElementById("projetoProvincia")?.value.trim() || '';
+    const local     = document.getElementById("projetoLocal")?.value?.trim() || '';
+    const tagsRaw   = document.getElementById("projetoTags")?.value.trim() || '';
     
     if (!titulo || !descricao) {
         mostrarToast("Preencha título e descrição do projeto!", true);
@@ -145,7 +145,7 @@ async function publicarProjeto(event) {
         return;
     }
     
-    const localFinal = provincia || local || 'Não informado';
+    const localFinal = provincia || local || '';
 
     // Preparar FormData para envio
     const formData = new FormData();
