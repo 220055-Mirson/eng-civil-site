@@ -1,7 +1,12 @@
 // ── CONFIGURAÇÃO DA API ──
-// REMOVA esta linha fixa:
-// const API_URL = 'http://localhost:3000/api';
-// Agora usa a variável global API_URL do config.js
+function getApiUrl() {
+    // 1. Usa API_URL do config.js se disponível
+    if (typeof API_URL !== 'undefined' && API_URL) return API_URL;
+    // 2. Fallback automático por hostname
+    const h = window.location.hostname;
+    if (h === 'localhost' || h === '127.0.0.1') return 'http://localhost:3000/api';
+    return window.location.protocol + '//' + window.location.host + '/api';
+}
 
 // ── VARIÁVEIS ──
 let imagensSelecionadas = [];
@@ -9,7 +14,7 @@ let projetosDoEngenheiro = [];
 
 // ── OBTER TOKEN DE AUTENTICAÇÃO ──
 function getAuthToken() {
-    return localStorage.getItem("authToken");
+    return localStorage.getItem("token") || localStorage.getItem("authToken");
 }
 
 function getUsuarioLogado() {
@@ -34,7 +39,7 @@ async function carregarProjetos() {
     }
 
     try {
-        const response = await fetch(`${API_URL}/meus-projetos`, {
+        const response = await fetch(`${getApiUrl()}/meus-projetos`, {
             headers: {
                 'Authorization': `Bearer ${getAuthToken()}`
             }
@@ -161,19 +166,29 @@ async function publicarProjeto(event) {
     });
     
     // Mostrar loading
-    const btn = event.target;
-    const originalText = btn.innerText;
-    btn.innerText = 'Publicando...';
-    btn.disabled = true;
+    const btn = document.querySelector('#formProjeto button[type="submit"]');
+    const originalText = btn ? btn.innerText : 'Publicar Projeto';
+    if (btn) { btn.innerText = 'A publicar...'; btn.disabled = true; }
     
     try {
-        const response = await fetch(`${API_URL}/projetos`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${getAuthToken()}`
-            },
-            body: formData
-        });
+        // Pequeno delay para garantir config.js carregado
+        await new Promise(r => setTimeout(r, 150));
+
+        let response;
+        try {
+            response = await fetch(`${getApiUrl()}/projetos`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${getAuthToken()}` },
+                body: formData
+            });
+        } catch(netErr) {
+            await new Promise(r => setTimeout(r, 600));
+            response = await fetch(`${getApiUrl()}/projetos`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${getAuthToken()}` },
+                body: formData
+            });
+        }
         
         if (response.ok) {
             // Limpar formulário
@@ -198,7 +213,7 @@ async function publicarProjeto(event) {
         mostrarToast("Erro de conexão com o servidor", true);
     } finally {
         if (btn) { btn.innerText = originalText; btn.disabled = false; }
-        // btn already handled above
+        if (btn) { btn.innerText = originalText; btn.disabled = false; }
     }
 }
 
@@ -251,7 +266,7 @@ async function salvarEdicao(event) {
     };
     
     try {
-        const response = await fetch(`${API_URL}/projetos/${id}`, {
+        const response = await fetch(`${getApiUrl()}/projetos/${id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -278,7 +293,7 @@ async function excluirProjeto(id) {
     if (!confirm("⚠️ Tem certeza que deseja excluir este projeto permanentemente? Esta ação não pode ser desfeita!")) return;
     
     try {
-        const response = await fetch(`${API_URL}/projetos/${id}`, {
+        const response = await fetch(`${getApiUrl()}/projetos/${id}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${getAuthToken()}`
