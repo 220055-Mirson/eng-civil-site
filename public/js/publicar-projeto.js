@@ -39,6 +39,7 @@ async function carregarProjetos() {
     }
 
     try {
+        await new Promise(r => setTimeout(r, 300));
         const response = await fetch(`${getApiUrl()}/meus-projetos`, {
             headers: {
                 'Authorization': `Bearer ${getAuthToken()}`
@@ -203,7 +204,21 @@ async function publicarProjeto(event) {
             atualizarPreview();
             
             mostrarToast("✅ Projeto publicado com sucesso!");
-            carregarProjetos(); // Recarregar lista
+            
+            // Limpar campos restantes
+            if (document.getElementById("projetoCategoria")) document.getElementById("projetoCategoria").value = "";
+            if (document.getElementById("projetoProvincia")) document.getElementById("projetoProvincia").value = "";
+            if (document.getElementById("projetoTags")) document.getElementById("projetoTags").value = "";
+            if (document.getElementById("projetoTitulo")) document.getElementById("projetoTitulo").value = "";
+            if (document.getElementById("projetoDescricao")) document.getElementById("projetoDescricao").value = "";
+
+            // Recarregar lista imediatamente e depois novamente após 1.5s
+            await carregarProjetos();
+            setTimeout(() => carregarProjetos(), 1500);
+            
+            // Scroll para a lista de projectos
+            const lista = document.querySelector(".lista-projetos") || document.querySelector(".projetos-container");
+            if (lista) lista.scrollIntoView({ behavior: "smooth", block: "start" });
         } else {
             const error = await response.json();
             mostrarToast(error.error || "Erro ao publicar projeto", true);
