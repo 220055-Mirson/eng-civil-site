@@ -193,10 +193,10 @@ async function publicarProjeto(event) {
         
         if (response.ok) {
             // Limpar formulário
-            document.getElementById("projetoTitulo").value = '';
-            document.getElementById("projetoDescricao").value = '';
-            document.getElementById("projetoLocal").value = '';
-            document.getElementById("projetoTags").value = '';
+            // Limpar form com protecção contra campos inexistentes
+            const _clear = id => { const el = document.getElementById(id); if (el) el.value = ''; };
+            _clear("projetoTitulo"); _clear("projetoDescricao"); _clear("projetoLocal");
+            _clear("projetoTags"); _clear("projetoProvincia"); _clear("projetoCategoria");
             
             // Limpar imagens
             imagensSelecionadas.forEach(img => URL.revokeObjectURL(img.previewUrl));
